@@ -1,0 +1,21 @@
+.htaccess
+atebot/users.dat
+
+# wszystko w cache oprócz oryginalnych plików
+cache/themes/*
+!cache/themes/index.html
+
+# wszystko w uploads oprócz oryginalnych plików
+uploads/*
+!uploads/index.html
+uploads/avatars/*
+!uploads/avatars/index.html
+
+install/lock
+
+# konfiguracja
+inc/config.php
+inc/settings.php
+
+# merge system
+merge

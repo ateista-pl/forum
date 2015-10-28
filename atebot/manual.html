@@ -1,0 +1,122 @@
+<html>
+<head>
+<title>AteBot - dokumentacja</title>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+</head>
+<body>
+<h2>Co to za tekst?</h2>
+<p>AteBot jest naszym kanałowym botem. Oprócz wyświetlania na forum 
+listy obecnych na kanale, jego funkcje obejmują utrzymywanie porządku i 
+dostarczanie rozrywki. Ten tekst jest próbą spisania wszystkich jego 
+funkcji.</p>
+
+<hr/>
+
+<h2>Spis funkcji</h2>
+<p>Poniżej spisane są funkcje bota.</p>
+<p>Niektóre polecenia dostępne są wyłącznie dla użytkowników z 
+uprawnieniami, tzw. masterów. Polecenia takie będą oznaczone przez 
+<i>(master)</i>.
+<hr/>
+
+<h3>Funkcje porządkowe</h3>
+<h4>Kicki/bany</h4>
+<p>Moduł kicków/banów pozwala na łatwe, częściowo demokratyczne 
+kickowanie/banowanie/odbanowywanie użytkowników. Dostępne polecenia:</p>
+<ul>
+<li><b>!kick</b> użytkownik powód - <i>(master)</i> Wyrzuca 
+użytkownika z kanału z podanym powodem.</li>
+<li><b>!ban</b> użytkownik powód - <i>(master)</i> Banuje użytkownika na 
+kanale z podanym powodem.</li>
+<li><b>!unban</b> nazwa_bana - <i>(master)</i> Zdejmuje bana o nazwie 
+<i>nazwa_bana</i> (nazwy można wyświetlić poleceniem !banlist).</li>
+<li><b>!banlist</b> - wyświetla listę aktywnych banów.</li>
+</ul>
+<p>Poniższe polecenia rozpoczynają głosowania. W głosowaniu każdy 
+użytkownik może się wypowiedzieć, czy jest za (<b>!yes</b>), przeciw 
+(<b>!no</b>), czy też chce się wstrzymać (<b>!whatever</b>).</p>
+<ul>
+<li><b>!votekick</b> użytkownik - głosowanie nad wyrzuceniem użytkownika 
+z kanału.</li>
+<li><b>!voteban</b> użytkownik - głosowanie nad zbanowaniem 
+użytkownika.</li>
+<li><b>!voteunban</b> nazwa_bana - głosowanie nad zdjęciem bana (nazwy 
+banów można wyświetlić przez !banlist).</li>
+</ul>
+<h4>Zabezpieczenie anti-flood</h4>
+<p>Funkcja ta zabezpiecza kanał przed zalewaniem go wiadomościami. 
+Użytkownik, który przekroczy limit wiadomości w ciągu ustalonego 
+interwału, jest wyrzucany z kanału. Jeśli osoba 
+powtarza przewinienie, jest banowana.</p>
+<p>Polecenie: <b>!antiflood</b> <i>(master)</i></p>
+<ul>
+<li><b>!antiflood</b> enable/disable - włącza/wyłącza 
+zabezpieczenie.</li>
+<li><b>!antiflood</b> interval x - ustawia interwał zliczania wiadomości 
+na x milisekund.</li>
+<li><b>!antiflood</b> number x - ustawia limit wiadomości na x.</li>
+</ul>
+<h4>Moduł listy obecnych</h4>
+<p>Moduł listy obecnych kontroluje, kto jest obecny na kanale. Posiada 
+dwie 
+funkcje: highlight wszystkich oraz sprawdzenie, kiedy ostatnio ktoś był 
+obecny.</p>
+<ul>
+<li><b>!wakeup</b> - wymawia nicki wszystkich obecnych na kanale, co 
+powoduje tzw. highlight (klient IRCa na wymówienie swojego nicka reaguje 
+zwykle wydaniem dźwięku lub inną zwracającą uwagę rzeczą).</li>
+<li><b>!seen</b> użytkownik - podaje datę, kiedy bot ostatnio 
+zarejestrował obecność danego użytkownika. Ponieważ użytkownicy często 
+występują pod wieloma nickami, w celu uzyskania dobrego wyniku może się 
+okazać konieczne sprawdzenie wielu alternatywnych nicków.</li>
+</ul>
+<h4>Filtr Badwords (brzydkich słów)</h4>
+<p>Funkcja na wpół porządkowa, na wpół humorystyczna. Przy wykryciu 
+niedozwolonego słowa wyrzuca osobę z kanału. Przekroczenie limitu 
+wyrzuceń skutkuje banem.</p>
+<p>Polecenie: <b>!badwords</b> <i>(master)</i></p>
+<ul>
+<li><b>!badwords</b> enable/disable - włączenie/wyłączenie filtru.</li>
+<li><b>!badwords</b> kick_ops on/off - włącza/wyłącza wyrzucanie osób, 
+mających na kanale status operatora.
+<li><b>!badwords</b> reload - przeładowuje listę zakazanych słów.</li>
+</ul>
+<hr/>
+<h3>Funkcje rozrywkowe</h3>
+<h4>Bredzenie</h4>
+<p>Bredzenie polega na tym, że bot w odpowiedzi na niektóre wypowiedzi 
+użytkowników generuje własne zdania, które następnie wysyła. Nieraz 
+daje to komiczny efekt, gdyż zdania są w pełni losowe.</p>
+<ul>
+<li><b>!random</b> enable/disable - <i>(master)</i> włącza/wyłącza 
+bredzenie.</li>
+<li><b>!gadaj</b> - powoduje, że bot generuje jedną wypowiedź.</li>
+<li><b>!stfu</b> - wyłącza bredzenie na 5 minut.</li>
+</ul>
+<h4>Eightball</h4>
+<p>Funkcja "wróżąca" - daje losową odpowiedź na zadane pytanie. Na 
+pytanie powinno dać się odpowiedzieć tak/nie.</p>
+<ul>
+<li><b>!eightball</b> pytanie - generuje odpowiedź</li>
+<li><b>!eightball</b> reload - przeładowuje listę możliwych 
+odpowiedzi.</li>
+</ul>
+<h4>Wzorce</h4>
+<p>Funkcja polegająca na tym, że gdy bot wykryje w jakiejś wypowiedzi 
+zdefiniowany wzorzec, wysyła określoną odpowiedź.</p>
+<p>Polecenie: <b>!wzorce</b> reload - przeładowuje listę wzorców.</p>
+<h4>Kostka</h4>
+<p>Funkcja symulująca rzut jedną lub wieloma kostkami 
+wielościennymi.</p>
+<p>Polecenie: <b>!roll [xd]y</b> - x, y powinny być liczbami. Rzuca x 
+kostkami o y ścianach. Gdy nie ma podanego x, rzuca jedną kostką.</p>
+<h4>Rosyjska ruletka</h4>
+<p>Funkcja gry w rosyjską ruletkę. Podczas pierwszego uruchomienia, 
+nabój ładowany jest losowo do jednej z 6 komór rewolweru. Każde 
+wywołanie polecenia <b>!russian</b> wywołuje wciśnięcie spustu i 
+przesunięcie komory o 1. Jeśli użytkownik trafi na komorę z nabojem, 
+jest banowany na 20 sekund.</p>
+<p><i>(master)</i> <b>!russian</b> enable/disable - włącza/wyłącza 
+możliwość gry.</p>
+</body>
+</html>
