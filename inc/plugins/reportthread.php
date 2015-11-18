@@ -119,18 +119,21 @@ function reportthread_dopost()
 	
 	if(intval($mybb->settings['rtt_enabled']) == 1 || preg_replace("/[^a-z]/i", "", $mybb->settings['rtt_enabled']) == "yes")
 	{
-		$post = get_post($mybb->input['pid']);
-		$thread = get_thread($post['tid']);
-		$forum = get_forum($thread['fid']);
-		
-		$tlink = get_thread_link($thread['tid']);
-		$flink = get_forum_link($thread['fid']);
-		
-		$reason = $mybb->input['reason'];
-		if($reason === 'other')
-			$reason = $mybb->input['comment'];
-		
-		$post_data = $mybb->user['username'] . " has reported a post.
+		if($mybb->input['type'] == 'post')
+		{
+			$title = "Reported Post By ";
+			$post = get_post($mybb->input['pid']);
+			$thread = get_thread($post['tid']);
+			$forum = get_forum($thread['fid']);
+			
+			$tlink = get_thread_link($thread['tid']);
+			$flink = get_forum_link($thread['fid']);
+			
+			$reason = $mybb->input['reason'];
+			if($reason === 'other')
+				$reason = $mybb->input['comment'];
+			
+			$post_data = $mybb->user['username'] . " has reported a post.
 
 Original Thread: [url=" . $mybb->settings['bburl'] . "/$tlink]" . $thread['subject'] . "[/url]
 Forum: [url=" . $mybb->settings['bburl'] . "/$flink]" . $forum['name'] . "[/url]
@@ -140,11 +143,31 @@ Reason Given:
 
 Post Content:
 [quote=\"" . $post['username'] . "\" pid=\"" . $post['pid'] . "\" dateline=\"" . $post['dateline'] . "\"]" . $post['message'] . "[/quote]";
+
+		}
+		else if($mybb->input['type'] == 'reputation')
+		{
+			$title = "Reported Reputation By ";
+			$rep = get_reputation_point($mybb->input['pid']);
+			$giver = get_user($rep['adduid']);
+			
+			$reason = $mybb->input['reason'];
+			if($reason === 'other')
+				$reason = $mybb->input['comment'];
+
+			$post_data = $mybb->user['username'] . " has reported a reputation point.
+
+Reason Given:
+[quote=\"" . $mybb->user['username'] . "\" dateline=\"" . time() . "\"]" . $reason . "[/quote]
+
+Reputation comment:
+[quote=\"" . $giver['username'] . "\" dateline=\"" . $rep['dateline'] . "\"]" . $rep['comments'] . "[/quote]";
+		}
 		
 		$new_thread = array(
 			"fid" => $mybb->settings['rtt_fid'],
 			"prefix" => 0,
-			"subject" => "Reported Post By " . $mybb->user['username'],
+			"subject" => $title . $mybb->user['username'],
 			"icon" => 0,
 			"uid" => $mybb->user['uid'],
 			"username" => $mybb->user['username'],

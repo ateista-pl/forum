@@ -6172,6 +6172,31 @@ function get_post($pid)
 }
 
 /**
+ * Get the reputation point data
+ *
+ * @param int $rid The reputation id
+ * @return array|bool The database row of the reputation point. False on failure
+ */
+function get_reputation_point($rid)
+{
+	global $db;
+	
+	$rid = (int)$rid;
+	
+	$query = $db->simple_select("reputation", "*", "rid = '{$rid}'");
+	$rep = $db->fetch_array($query);
+	
+	if($rep)
+	{
+		return $rep;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+/**
  * Get inactivate forums.
  *
  * @return string The comma separated values of the inactivate forum.
