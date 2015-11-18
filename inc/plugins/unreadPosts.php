@@ -240,7 +240,7 @@ class unreadPosts
         $query = $db->simple_select("posts", "pid", "tid='{$thread['tid']}' AND dateline > '{$this->readTime}' {$visibleonly}", $options);
         $newpost = $db->fetch_array($query);
         
-        if ($newpost['pid'])
+        if ($newpost['pid'] && isset($mybb->input['action']) && $mybb->input['action'] != "lastpost")
         {
         	$highlight = '';
         	if ($mybb->input['highlight'])
