@@ -129,7 +129,7 @@ $l['icq_number'] = "ICQ Number:";
 $l['aim_screenname'] = "AIM Screen Name:";
 $l['yahoo_id'] = "Yahoo ID:";
 $l['skype_id'] = "Skype ID:";
-$l['google_id'] = "Google Talk ID:";
+$l['google_id'] = "Google Hangouts ID:";
 $l['away_notice'] = "This option will allow you to select whether you are away or not.";
 $l['additional_information'] = "Additional Information";
 $l['update_profile'] = "Update Profile";
@@ -326,4 +326,3 @@ $l['you_cannot_moderate_attachments'] = "You do not have sufficient permission t
 $l['you_cannot_use_mod_queue'] = "You do not have sufficient permission to use the Mod Queue.";
 
 $l['post'] = 'Post';
-$l['search_user'] = "Search for a user";

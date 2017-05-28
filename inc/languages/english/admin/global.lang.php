@@ -50,7 +50,6 @@ $l['error_admin_session_expired'] = "Your administration session has expired.";
 $l['error_invalid_ip'] = "Your IP address is not valid for this session.";
 $l['error_mybb_admin_lockedout'] = "This account has been locked out.";
 $l['error_mybb_admin_lockedout_message'] = "Your account is currently locked out after failing to login {1} times. You have been sent an email with instructions on how to unlock your account.";
-$l['error_invalid_secret_pin'] = 'You have entered an invalid secret PIN.';
 
 $l['error_invalid_username'] = "The username you entered is invalid.";
 $l['error_invalid_uid'] = "The user id you entered is invalid.";
@@ -133,6 +132,8 @@ $l['on'] = "On";
 $l['off'] = "Off";
 $l['alt_enabled'] = "Enabled";
 $l['alt_disabled'] = "Disabled";
+$l['enable'] = "Enable";
+$l['disable'] = "Disable";
 $l['saved'] = 'Saved';
 
 $l['rel_in'] = "In ";
@@ -176,7 +177,7 @@ $l['cannot_perform_action_super_admin_general'] = "Sorry, but you cannot perform
 $l['loading_text'] = "Loading<br />Please wait...";
 
 // Time zone selection boxes
-$l['timezone_gmt_minus_1200'] = "(GMT -12:00) Marshall Islands";
+$l['timezone_gmt_minus_1200'] = "(GMT -12:00) Howland and Baker Islands";
 $l['timezone_gmt_minus_1100'] = "(GMT -11:00) Nome, Midway Island";
 $l['timezone_gmt_minus_1000'] = "(GMT -10:00) Hawaii, Papeete";
 $l['timezone_gmt_minus_950'] = "(GMT -9:30) Marquesas Islands";
@@ -199,19 +200,21 @@ $l['timezone_gmt_350'] = "(GMT +3:30) Tehran";
 $l['timezone_gmt_400'] = "(GMT +4:00) Moscow, Abu Dhabi, Baku, Muscat, Tbilisi";
 $l['timezone_gmt_450'] = "(GMT +4:30) Kabul";
 $l['timezone_gmt_500'] = "(GMT +5:00) Islamabad, Karachi, Tashkent";
-$l['timezone_gmt_550'] = "(GMT +5:30) Mumbai, Calcutta, Madras, New Delhi";
+$l['timezone_gmt_550'] = "(GMT +5:30) Mumbai, Kolkata, Chennai, New Delhi";
 $l['timezone_gmt_575'] = "(GMT +5:45) Kathmandu";
 $l['timezone_gmt_600'] = "(GMT +6:00) Almaty, Dhakra, Yekaterinburg";
 $l['timezone_gmt_650'] = "(GMT +6:30) Yangon";
 $l['timezone_gmt_700'] = "(GMT +7:00) Bangkok, Hanoi, Jakarta";
 $l['timezone_gmt_800'] = "(GMT +8:00) Beijing, Hong Kong, Perth, Singapore, Taipei, Manila";
+$l['timezone_gmt_850'] = "(GMT +8:30) Pyongyang";
+$l['timezone_gmt_875'] = "(GMT +8:45) Eucla";
 $l['timezone_gmt_900'] = "(GMT +9:00) Osaka, Sapporo, Seoul, Tokyo, Irkutsk";
 $l['timezone_gmt_950'] = "(GMT +9:30) Adelaide, Darwin";
 $l['timezone_gmt_1000'] = "(GMT +10:00) Melbourne, Papua New Guinea, Sydney, Yakutsk";
 $l['timezone_gmt_1050'] = "(GMT +10:30) Lord Howe Island";
 $l['timezone_gmt_1100'] = "(GMT +11:00) Magadan, New Caledonia, Solomon Islands, Vladivostok";
 $l['timezone_gmt_1150'] = "(GMT +11:30) Norfolk Island";
-$l['timezone_gmt_1200'] = "(GMT +12:00) Auckland, Wellington, Fiji, Marshall Island";
+$l['timezone_gmt_1200'] = "(GMT +12:00) Auckland, Wellington, Fiji, Marshall Islands";
 $l['timezone_gmt_1275'] = "(GMT +12:45) Chatham Islands";
 $l['timezone_gmt_1300'] = "(GMT +13:00) Samoa, Tonga, Tokelau";
 $l['timezone_gmt_1400'] = "(GMT +14:00) Line Islands";
@@ -355,6 +358,8 @@ Thank you,
 $l['comma'] = ", ";
 
 $l['search_for_a_user'] = "Search for a user";
+
+$l['mybb_engine'] = "MyBB Engine";
 
 // If the language string for "Username" is too cramped in the ACP Login box
 // then use this to define how much larger you want the gap to be (in px)

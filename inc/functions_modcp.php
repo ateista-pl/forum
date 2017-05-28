@@ -41,7 +41,7 @@ function modcp_can_manage_user($uid)
  */
 function fetch_forum_announcements($pid=0, $depth=1)
 {
-	global $mybb, $db, $lang, $theme, $announcements, $templates, $announcements_forum, $moderated_forums, $unviewableforums;
+	global $mybb, $db, $lang, $theme, $announcements, $templates, $announcements_forum, $moderated_forums, $unviewableforums, $parser;
 	static $forums_by_parent, $forum_cache, $parent_forums;
 
 	if(!is_array($forum_cache))
@@ -118,7 +118,7 @@ function fetch_forum_announcements($pid=0, $depth=1)
 							eval("\$icon = \"".$templates->get("modcp_announcements_announcement_active")."\";");
 						}
 
-						$subject = htmlspecialchars_uni($announcement['subject']);
+						$subject = htmlspecialchars_uni($parser->parse_badwords($announcement['subject']));
 
 						eval("\$announcements_forum .= \"".$templates->get("modcp_announcements_announcement")."\";");
 					}
@@ -143,43 +143,59 @@ function fetch_forum_announcements($pid=0, $depth=1)
  */
 function send_report($report, $report_type='post')
 {
-	global $db, $lang, $forum, $mybb, $post, $thread, $reputation, $user;
+	global $db, $lang, $forum, $mybb, $post, $thread, $reputation, $user, $plugins;
 
-	$nummods = false;
-	if(!empty($forum['parentlist']))
+	$report_reason = '';
+	if($report['reasonid'])
 	{
-		$query = $db->query("
-			SELECT DISTINCT u.username, u.email, u.receivepms, u.uid
-			FROM ".TABLE_PREFIX."moderators m
-			LEFT JOIN ".TABLE_PREFIX."users u ON (u.uid=m.id)
-			WHERE m.fid IN (".$forum['parentlist'].") AND m.isgroup = '0'
-		");
+		$query = $db->simple_select("reportreasons", "title", "rid = '".(int)$report['reasonid']."'", array('limit' => 1));
+		$reason = $db->fetch_array($query);
 
-		$nummods = $db->num_rows($query);
+		$lang->load('report');
+
+		$report_reason = $lang->parse($reason['title']);
 	}
 
-	if(!$nummods)
+	if($report['reason'])
 	{
-		unset($query);
-		switch($db->type)
+		$report_reason = $lang->sprintf($lang->email_report_comment_extra, $report_reason, $report['reason']);
+	}
+
+	$modsjoin = $modswhere = '';
+	if(!empty($forum['parentlist']))
+	{
+		$modswhere = "m.fid IN ({$forum['parentlist']}) OR ";
+
+		if($db->type == 'pgsql' || $db->type == 'sqlite')
 		{
-			case "pgsql":
-			case "sqlite":
-				$query = $db->query("
-					SELECT u.username, u.email, u.receivepms, u.uid
-					FROM ".TABLE_PREFIX."users u
-					LEFT JOIN ".TABLE_PREFIX."usergroups g ON (((','|| u.additionalgroups|| ',' LIKE '%,'|| g.gid|| ',%') OR u.usergroup = g.gid))
-					WHERE (g.cancp=1 OR g.issupermod=1)
-				");
-				break;
-			default:
-				$query = $db->query("
-					SELECT u.username, u.email, u.receivepms, u.uid
-					FROM ".TABLE_PREFIX."users u
-					LEFT JOIN ".TABLE_PREFIX."usergroups g ON (((CONCAT(',', u.additionalgroups, ',') LIKE CONCAT('%,', g.gid, ',%')) OR u.usergroup = g.gid))
-					WHERE (g.cancp=1 OR g.issupermod=1)
-				");
+			$modsjoin = "LEFT JOIN {$db->table_prefix}moderators m ON (m.id = u.uid AND m.isgroup = 0) OR ((m.id = u.usergroup OR ',' || u.additionalgroups || ',' LIKE '%,' || m.id || ',%') AND m.isgroup = 1)";
 		}
+		else
+		{
+			$modsjoin = "LEFT JOIN {$db->table_prefix}moderators m ON (m.id = u.uid AND m.isgroup = 0) OR ((m.id = u.usergroup OR CONCAT(',', u.additionalgroups, ',') LIKE CONCAT('%,', m.id, ',%')) AND m.isgroup = 1)";
+		}
+	}
+
+	switch($db->type)
+	{
+		case "pgsql":
+		case "sqlite":
+			$query = $db->query("
+				SELECT DISTINCT u.username, u.email, u.receivepms, u.uid
+				FROM {$db->table_prefix}users u
+				{$modsjoin}
+				LEFT JOIN {$db->table_prefix}usergroups g ON (',' || u.additionalgroups || ',' LIKE '%,' || g.gid || ',%' OR g.gid = u.usergroup)
+				WHERE {$modswhere}g.cancp = 1 OR g.issupermod = 1
+			");
+			break;
+		default:
+			$query = $db->query("
+				SELECT DISTINCT u.username, u.email, u.receivepms, u.uid
+				FROM {$db->table_prefix}users u
+				{$modsjoin}
+				LEFT JOIN {$db->table_prefix}usergroups g ON (CONCAT(',', u.additionalgroups, ',') LIKE CONCAT('%,', g.gid, ',%') OR g.gid = u.usergroup)
+				WHERE {$modswhere}g.cancp = 1 OR g.issupermod = 1
+			");
 	}
 
 	$lang_string_subject = "emailsubject_report{$report_type}";
@@ -209,8 +225,10 @@ function send_report($report, $report_type='post')
 			break;
 	}
 
+	$plugins->run_hooks("send_report_report_type");
+
 	$emailsubject = $lang->sprintf($lang->$lang_string_subject, $mybb->settings['bbname']);
-	$emailmessage = $lang->sprintf($lang->$lang_string_message, $mybb->user['username'], $mybb->settings['bbname'], $send_report_subject, $mybb->settings['bburl'], $send_report_url, $report['reason']);
+	$emailmessage = $lang->sprintf($lang->$lang_string_message, $mybb->user['username'], $mybb->settings['bbname'], $send_report_subject, $mybb->settings['bburl'], $send_report_url, $report_reason);
 
 	while($mod = $db->fetch_array($query))
 	{
@@ -273,6 +291,7 @@ function add_report($report, $type = 'post')
 		'id3' => (int)$report['id3'],
 		'uid' => (int)$report['uid'],
 		'reportstatus' => 0,
+		'reasonid' => (int)$report['reasonid'],
 		'reason' => $db->escape_string($report['reason']),
 		'type' => $db->escape_string($type),
 		'reports' => 1,
@@ -283,7 +302,7 @@ function add_report($report, $type = 'post')
 
 	if($mybb->settings['reportmethod'] == "email" || $mybb->settings['reportmethod'] == "pms")
 	{
-		return send_report($report, $type);
+		send_report($report, $type);
 	}
 
 	$rid = $db->insert_query("reportedcontent", $insert_array);

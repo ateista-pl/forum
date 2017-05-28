@@ -13,7 +13,7 @@ if(!defined('IN_MYBB'))
 {
 	die('This file cannot be accessed directly.');
 }
-	
+
 // cache templates - this is important when it comes to performance
 // THIS_SCRIPT is defined by some of the MyBB scripts, including index.php
 if(defined('THIS_SCRIPT'))
@@ -74,9 +74,9 @@ function hello_info()
 	return array(
 		'name'			=> 'Hello World!',
 		'description'	=> $lang->hello_desc,
-		'website'		=> 'http://mybb.com',
+		'website'		=> 'https://mybb.com',
 		'author'		=> 'MyBB Group',
-		'authorsite'	=> 'http://www.mybb.com',
+		'authorsite'	=> 'https://mybb.com',
 		'version'		=> '2.0',
 		'compatibility'	=> '18*',
 		'codename'		=> 'hello'
@@ -318,13 +318,13 @@ function hello_activate()
 
 	// Delete deprecated entries.
 	$db->delete_query('settings', "gid='{$gid}' AND description='HELLODELETEMARKER'");
-	
+
 	// This is required so it updates the settings.php file as well and not only the database - they must be synchronized!
 	rebuild_settings();
 
 	// Include this file because it is where find_replace_templatesets is defined
 	require_once MYBB_ROOT.'inc/adminfunctions_templates.php';
-	
+
 	// Edit the index template and add our variable to above {$forums}
 	find_replace_templatesets('index', '#'.preg_quote('{$forums}').'#', "{\$hello}\n{\$forums}");
 }
@@ -339,7 +339,7 @@ function hello_activate()
 function hello_deactivate()
 {
 	require_once MYBB_ROOT.'inc/adminfunctions_templates.php';
-	
+
 	// remove template edits
 	find_replace_templatesets('index', '#'.preg_quote('{$hello}').'#', '');
 }
@@ -354,17 +354,35 @@ function hello_install()
 {
 	global $db;
 
-	// Create our entries table
+	// Create our table collation
 	$collation = $db->build_create_table_collation();
 
-	// create table if it doesn't exist already
+	// Create table if it doesn't exist already
 	if(!$db->table_exists('hello_messages'))
 	{
-		$db->write_query("CREATE TABLE `".TABLE_PREFIX."hello_messages` (
-			`mid` int(10) UNSIGNED NOT NULL auto_increment,
-			`message` varchar(100) NOT NULL default '',
-			PRIMARY KEY  (`mid`)
-		) ENGINE=MyISAM{$collation}");
+		switch($db->type)
+		{
+			case "pgsql":
+				$db->write_query("CREATE TABLE ".TABLE_PREFIX."hello_messages (
+					mid serial,
+					message varchar(100) NOT NULL default '',
+					PRIMARY KEY (mid)
+				);");
+				break;
+			case "sqlite":
+				$db->write_query("CREATE TABLE ".TABLE_PREFIX."hello_messages (
+					mid INTEGER PRIMARY KEY,
+					message varchar(100) NOT NULL default ''
+				);");
+				break;
+			default:
+				$db->write_query("CREATE TABLE ".TABLE_PREFIX."hello_messages (
+					mid int unsigned NOT NULL auto_increment,
+					message varchar(100) NOT NULL default '',
+					PRIMARY KEY (mid)
+				) ENGINE=MyISAM{$collation};");
+				break;
+		}
 	}
 }
 
@@ -399,38 +417,22 @@ function hello_uninstall()
 		$page->output_confirm_action('index.php?module=config-plugins&action=deactivate&uninstall=1&plugin=hello', $lang->hello_uninstall_message, $lang->hello_uninstall);
 	}
 
-	// remove our templates group
-	// Query the template groups
-	$query = $db->simple_select('templategroups', 'prefix', "prefix='hello'");
+	// Delete template groups.
+	$db->delete_query('templategroups', "prefix='hello'");
 
-	// Build where string for templates
-	$sqlwhere = array();
+	// Delete templates belonging to template groups.
+	$db->delete_query('templates', "title='hello' OR title LIKE 'hello_%'");
 
-	while($prefix = $db->fetch_field($query, 'prefix'))
-	{
-		$tprefix = $db->escape_string($prefix);
-		$sqlwhere[] = "title='{$tprefix}' OR title LIKE '{$tprefix}=_%' ESCAPE '='";
-	}
-
-	if($sqlwhere) // else there are no groups to delete
-	{
-		// Delete template groups.
-		$db->delete_query('templategroups', "prefix='hello'");
-
-		// Delete templates belonging to template groups.
-		$db->delete_query('templates', implode(' OR ', $sqlwhere));
-	}
-
-	// delete settings group
+	// Delete settings group
 	$db->delete_query('settinggroups', "name='hello'");
 
-	// remove settings
+	// Remove the settings
 	$db->delete_query('settings', "name IN ('hello_display1','hello_display2')");
 
 	// This is required so it updates the settings.php file as well and not only the database - they must be synchronized!
 	rebuild_settings();
 
-	// drop tables if desired
+	// Drop tables if desired
 	if(!isset($mybb->input['no']))
 	{
 		$db->drop_table('hello_messages');

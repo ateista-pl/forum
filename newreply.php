@@ -11,13 +11,14 @@
 define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'newreply.php');
 
-$templatelist = "newreply,previewpost,loginbox,changeuserbox,posticons,newreply_threadreview,newreply_threadreview_post,forumdisplay_rules_link,newreply_multiquote_external,post_attachments_add,post_subscription_method,postbit_warninglevel_formatted";
-$templatelist .= ",smilieinsert,smilieinsert_getmore,smilieinsert_smilie,smilieinsert_smilie_empty,codebuttons,post_attachments_new,post_attachments,post_savedraftbutton,newreply_modoptions,newreply_threadreview_more,newreply_disablesmilies,postbit_online";
-$templatelist .= ",postbit_www,postbit_email,postbit_reputation,postbit_warninglevel,postbit_author_user,postbit_edit,postbit_quickdelete,postbit_inlinecheck,postbit_posturl,postbit_quote,postbit_multiquote,postbit_report,postbit_ignored,postbit,postbit_userstar";
-$templatelist .= ",post_attachments_attachment_postinsert,post_attachments_attachment_remove,post_attachments_attachment_unapproved,post_attachments_attachment,postbit_attachments_attachment,postbit_attachments,newreply_options_signature,postbit_find";
-$templatelist .= ",member_register_regimage,member_register_regimage_recaptcha,member_register_regimage_ayah,post_captcha_hidden,post_captcha,post_captcha_recaptcha,post_captcha_nocaptcha,post_captcha_ayah,postbit_groupimage,postbit_away,postbit_offline,postbit_avatar,postbit_icon";
-$templatelist .= ",postbit_rep_button,postbit_warn,postbit_author_guest,postbit_signature,postbit_classic,postbit_attachments_thumbnails_thumbnailpostbit_attachments_images_image,postbit_attachments_attachment_unapproved,postbit_pm,post_attachments_update";
-$templatelist .= ",postbit_attachments_thumbnails,postbit_attachments_images,postbit_gotopost,forumdisplay_password_wrongpass,forumdisplay_password,posticons_icon,attachment_icon,postbit_reputation_formatted_link,newreply_disablesmilies_hidden,forumdisplay_rules,global_moderation_notice";
+$templatelist = "newreply,previewpost,loginbox,changeuserbox,posticons,newreply_threadreview,newreply_threadreview_post,forumdisplay_rules_link,newreply_multiquote_external,post_attachments_add,post_subscription_method";
+$templatelist .= ",codebuttons,post_attachments_new,post_attachments,post_savedraftbutton,newreply_modoptions,newreply_threadreview_more,postbit_online,postbit_pm,newreply_disablesmilies_hidden,post_attachments_update,postbit_icon";
+$templatelist .= ",postbit_email,postbit_warninglevel,postbit_author_user,postbit_edit,postbit_quickdelete,postbit_inlinecheck,postbit_posturl,postbit_quote,postbit_multiquote,newreply_modoptions_close,newreply_modoptions_stick";
+$templatelist .= ",post_attachments_attachment_postinsert,post_attachments_attachment_remove,post_attachments_attachment_unapproved,post_attachments_attachment,postbit_attachments_attachment,newreply_signature,postbit_report";
+$templatelist .= ",member_register_regimage,member_register_regimage_recaptcha,post_captcha_hidden,post_captcha,post_captcha_recaptcha,post_captcha_nocaptcha,postbit_groupimage,postbit_attachments,newreply_postoptions,postbit_reputation";
+$templatelist .= ",postbit_rep_button,postbit_warn,postbit_author_guest,postbit_signature,postbit_classic,postbit_attachments_thumbnails_thumbnailpostbit_attachments_images_image,postbit_attachments_attachment_unapproved,postbit_www";
+$templatelist .= ",postbit_attachments_thumbnails,postbit_attachments_images,postbit_gotopost,forumdisplay_password_wrongpass,forumdisplay_password,posticons_icon,attachment_icon,postbit_reputation_formatted_link,postbit_away";
+$templatelist .= ",global_moderation_notice,newreply_disablesmilies,postbit_userstar,newreply_draftinput,postbit_avatar,forumdisplay_rules,postbit_offline,postbit_find,postbit_warninglevel_formatted,postbit_ignored,postbit";
 
 require_once "./global.php";
 require_once MYBB_ROOT."inc/functions_post.php";
@@ -56,7 +57,7 @@ if(($mybb->input['action'] == "editdraft" || $mybb->input['action'] == "do_newre
 	}
 	$pid = $post['pid'];
 	$tid = $post['tid'];
-	$editdraftpid = "<input type=\"hidden\" name=\"pid\" value=\"$pid\" />";
+	eval("\$editdraftpid = \"".$templates->get("newreply_draftinput")."\";");
 }
 
 // Set up $thread and $forum for later use.
@@ -76,7 +77,8 @@ if(!$forum)
 
 // Make navigation
 build_forum_breadcrumb($fid);
-$thread['subject'] = htmlspecialchars_uni($thread['subject']);
+$thread_subject = $thread['subject'];
+$thread['subject'] = htmlspecialchars_uni($parser->parse_badwords($thread['subject']));
 add_breadcrumb($thread['subject'], get_thread_link($thread['tid']));
 add_breadcrumb($lang->nav_newreply);
 
@@ -155,6 +157,7 @@ if($mybb->settings['bbcodeinserter'] != 0 && $forum['allowmycode'] != 0 && (!$my
 // Display a login box or change user box?
 if($mybb->user['uid'] != 0)
 {
+	$mybb->user['username'] = htmlspecialchars_uni($mybb->user['username']);
 	eval("\$loginbox = \"".$templates->get("changeuserbox")."\";");
 }
 else
@@ -254,7 +257,7 @@ if($mybb->settings['enableattachments'] == 1 && !$mybb->get_input('attachmentaid
 
 	if(!$mybb->get_input('submit'))
 	{
-		$editdraftpid = "<input type=\"hidden\" name=\"pid\" value=\"$pid\" />";
+		eval("\$editdraftpid = \"".$templates->get("newreply_draftinput")."\";");
 		$mybb->input['action'] = "newreply";
 	}
 }
@@ -269,12 +272,13 @@ if($mybb->settings['enableattachments'] == 1 && $mybb->get_input('attachmentaid'
 	remove_attachment($pid, $mybb->get_input('posthash'), $mybb->get_input('attachmentaid', MyBB::INPUT_INT));
 	if(!$mybb->get_input('submit'))
 	{
-		$editdraftpid = "<input type=\"hidden\" name=\"pid\" value=\"$pid\" />";
+		eval("\$editdraftpid = \"".$templates->get("newreply_draftinput")."\";");
 		$mybb->input['action'] = "newreply";
 	}
 }
 
-$reply_errors = $quoted_ids = '';
+$reply_errors = '';
+$quoted_ids = array();
 $hide_captcha = false;
 
 // Check the maximum posts per day for this user
@@ -311,7 +315,7 @@ if($mybb->input['action'] == "do_newreply" && $mybb->request_method == "post")
 			$username = $mybb->get_input('username');
 		}
 		$uid = 0;
-	
+
 
 		if($mybb->settings['stopforumspam_on_newreply'])
 		{
@@ -615,7 +619,7 @@ if($mybb->input['action'] == "do_newreply" && $mybb->request_method == "post")
 						redirect(get_thread_link($tid, 0, "lastpost"));
 					}
 				}
-				
+
 				if(!$mybb->settings['postsperpage'] || (int)$mybb->settings['postsperpage'] < 1)
 				{
 					$mybb->settings['postsperpage'] = 20;
@@ -680,7 +684,7 @@ if($mybb->input['action'] == "do_newreply" && $mybb->request_method == "post")
 				$data .= $post;
 
 				// Build a new posthash incase the user wishes to quick reply again
-			    $new_posthash = md5($mybb->user['uid'].random_str());
+				$new_posthash = md5($mybb->user['uid'].random_str());
 				$data .= "<script type=\"text/javascript\">\n";
 				$data .= "var hash = document.getElementById('posthash'); if(hash) { hash.value = '{$new_posthash}'; }\n";
 				$data .= "if(typeof(inlineModeration) != 'undefined') {
@@ -762,13 +766,38 @@ if($mybb->input['action'] == "newreply" || $mybb->input['action'] == "editdraft"
 			{
 				$inactiveforums = "AND t.fid NOT IN ({$inactiveforums})";
 			}
-			if(is_moderator($fid))
+
+			// Check group permissions if we can't view threads not started by us
+			$group_permissions = forum_permissions();
+			$onlyusfids = array();
+			$onlyusforums = '';
+			foreach($group_permissions as $gpfid => $forum_permissions)
 			{
-				$visible_where = "AND p.visible != 2";
+				if(isset($forum_permissions['canonlyviewownthreads']) && $forum_permissions['canonlyviewownthreads'] == 1)
+				{
+					$onlyusfids[] = $gpfid;
+				}
+			}
+			if(!empty($onlyusfids))
+			{
+				$onlyusforums = "AND ((t.fid IN(".implode(',', $onlyusfids).") AND t.uid='{$mybb->user['uid']}') OR t.fid NOT IN(".implode(',', $onlyusfids)."))";
+			}
+
+			if(is_moderator($fid, 'canviewunapprove') && is_moderator($fid, 'canviewdeleted'))
+			{
+				$visible_where = "AND p.visible IN (-1,0,1)";
+			}
+			elseif(is_moderator($fid, 'canviewunapprove') && !is_moderator($fid, 'canviewdeleted'))
+			{
+				$visible_where = "AND p.visible IN (0,1)";
+			}
+			elseif(!is_moderator($fid, 'canviewunapprove') && is_moderator($fid, 'canviewdeleted'))
+			{
+				$visible_where = "AND p.visible IN (-1,1)";
 			}
 			else
 			{
-				$visible_where = "AND p.visible > 0";
+				$visible_where = "AND p.visible=1";
 			}
 
 			require_once MYBB_ROOT."inc/functions_posting.php";
@@ -777,7 +806,7 @@ if($mybb->input['action'] == "newreply" || $mybb->input['action'] == "editdraft"
 				FROM ".TABLE_PREFIX."posts p
 				LEFT JOIN ".TABLE_PREFIX."threads t ON (t.tid=p.tid)
 				LEFT JOIN ".TABLE_PREFIX."users u ON (u.uid=p.uid)
-				WHERE p.pid IN ({$quoted_posts}) {$unviewable_forums} {$inactiveforums} {$visible_where}
+				WHERE p.pid IN ({$quoted_posts}) {$unviewable_forums} {$inactiveforums} {$onlyusforums} {$visible_where}
 			");
 			$load_all = $mybb->get_input('load_all_quotes', MyBB::INPUT_INT);
 			while($quoted_post = $db->fetch_array($query))
@@ -949,7 +978,7 @@ if($mybb->input['action'] == "newreply" || $mybb->input['action'] == "editdraft"
 		}
 		else
 		{
-			$subject = $thread['subject'];
+			$subject = $thread_subject;
 			// Subject too long? Shorten it to avoid error message
 			if(my_strlen($subject) > 85)
 			{
@@ -1014,7 +1043,7 @@ if($mybb->input['action'] == "newreply" || $mybb->input['action'] == "editdraft"
 		// Now let the post handler do all the hard work.
 		$valid_post = $posthandler->verify_message();
 		$valid_subject = $posthandler->verify_subject();
-		
+
 		// guest post --> verify author
 		if($post['uid'] == 0)
 		{
@@ -1217,17 +1246,13 @@ if($mybb->input['action'] == "newreply" || $mybb->input['action'] == "editdraft"
 
 		if(!$correct)
 		{
- 			if($post_captcha->type == 1)
+			if($post_captcha->type == 1)
 			{
 				$post_captcha->build_captcha();
 			}
 			elseif($post_captcha->type == 2 || $post_captcha->type == 4)
 			{
 				$post_captcha->build_recaptcha();
-			}
-			elseif($post_captcha->type == 3)
-			{
-				$post_captcha->build_ayah();
 			}
 
 			if($post_captcha->html)
@@ -1238,15 +1263,6 @@ if($mybb->input['action'] == "newreply" || $mybb->input['action'] == "editdraft"
 		else if($correct && ($post_captcha->type == 2 || $post_captcha->type == 4))
 		{
 			$post_captcha->build_recaptcha();
-
-			if($post_captcha->html)
-			{
-				$captcha = $post_captcha->html;
-			}
-		}
-		else if($correct && $post_captcha->type == 3)
-		{
-			$post_captcha->build_ayah();
 
 			if($post_captcha->html)
 			{
@@ -1273,7 +1289,7 @@ if($mybb->input['action'] == "newreply" || $mybb->input['action'] == "editdraft"
 		}
 		$query = $db->simple_select("posts", "COUNT(pid) AS post_count", "tid='{$tid}' AND {$visibility}");
 		$numposts = $db->fetch_field($query, "post_count");
-		
+
 		if(!$mybb->settings['postsperpage'] || (int)$mybb->settings['postsperpage'] < 1)
 		{
 			$mybb->settings['postsperpage'] = 20;
@@ -1341,6 +1357,8 @@ if($mybb->input['action'] == "newreply" || $mybb->input['action'] == "editdraft"
 				$parser_options['allow_videocode'] = 0;
 			}
 
+			$post['username'] = htmlspecialchars_uni($post['username']);
+
 			if($post['visible'] != 1)
 			{
 				$altbg = "trow_shaded";
@@ -1362,15 +1380,29 @@ if($mybb->input['action'] == "newreply" || $mybb->input['action'] == "editdraft"
 		eval("\$threadreview = \"".$templates->get("newreply_threadreview")."\";");
 	}
 
+	// Hide signature option if no permission
+	$signature = '';
+	if($mybb->usergroup['canusesig'] == 1 && !$mybb->user['suspendsignature'])
+	{
+		eval("\$signature = \"".$templates->get('newreply_signature')."\";");
+	}
+
 	// Can we disable smilies or are they disabled already?
 	$disablesmilies = '';
 	if($forum['allowsmilies'] != 0)
 	{
 		eval("\$disablesmilies = \"".$templates->get("newreply_disablesmilies")."\";");
 	}
+
+	$postoptions = '';
+	if(!empty($signature) || !empty($disablesmilies))
+	{
+		eval("\$postoptions = \"".$templates->get("newreply_postoptions")."\";");
+		$bgcolor = "trow2";
+	}
 	else
 	{
-		eval("\$disablesmilies = \"".$templates->get("newreply_disablesmilies_hidden")."\";");
+		$bgcolor = "trow1";
 	}
 
 	$modoptions = '';
@@ -1415,8 +1447,27 @@ if($mybb->input['action'] == "newreply" || $mybb->input['action'] == "editdraft"
 			$stickycheck = '';
 		}
 
-		eval("\$modoptions = \"".$templates->get("newreply_modoptions")."\";");
-		$bgcolor = "trow1";
+		$closeoption = '';
+		if(is_moderator($thread['fid'], "canopenclosethreads"))
+		{
+			eval("\$closeoption = \"".$templates->get("newreply_modoptions_close")."\";");
+		}
+
+		$stickoption = '';
+		if(is_moderator($thread['fid'], "canstickunstickthreads"))
+		{
+			eval("\$stickoption = \"".$templates->get("newreply_modoptions_stick")."\";");
+		}
+
+		if(!empty($closeoption) || !empty($stickoption))
+		{
+			eval("\$modoptions = \"".$templates->get("newreply_modoptions")."\";");
+			$bgcolor = "trow1";
+		}
+		else
+		{
+			$bgcolor = "trow2";
+		}
 	}
 	else
 	{

@@ -343,17 +343,17 @@ function my_date($format, $stamp=0, $offset="", $ty=1, $adodb=false)
 	{
 		if(isset($mybb->user['uid']) && $mybb->user['uid'] != 0 && array_key_exists("timezone", $mybb->user))
 		{
-			$offset = $mybb->user['timezone'];
+			$offset = (float)$mybb->user['timezone'];
 			$dstcorrection = $mybb->user['dst'];
 		}
 		elseif(defined("IN_ADMINCP"))
 		{
-			$offset =  $mybbadmin['timezone'];
+			$offset = (float)$mybbadmin['timezone'];
 			$dstcorrection = $mybbadmin['dst'];
 		}
 		else
 		{
-			$offset = $mybb->settings['timezoneoffset'];
+			$offset = (float)$mybb->settings['timezoneoffset'];
 			$dstcorrection = $mybb->settings['dstcorrection'];
 		}
 
@@ -598,7 +598,7 @@ function generate_post_check()
 function verify_post_check($code, $silent=false)
 {
 	global $lang;
-	if(generate_post_check() != $code)
+	if(generate_post_check() !== $code)
 	{
 		if($silent == true)
 		{
@@ -865,7 +865,7 @@ function error_no_permission()
 
 	if($mybb->user['uid'])
 	{
-		$lang->error_nopermission_user_username = $lang->sprintf($lang->error_nopermission_user_username, $mybb->user['username']);
+		$lang->error_nopermission_user_username = $lang->sprintf($lang->error_nopermission_user_username, htmlspecialchars_uni($mybb->user['username']));
 		eval("\$errorpage = \"".$templates->get("error_nopermission_loggedin")."\";");
 	}
 	else
@@ -966,7 +966,7 @@ function redirect($url, $message="", $title="", $force_redirect=false)
 
 		run_shutdown();
 
-		if(my_substr($url, 0, 7) !== 'http://' && my_substr($url, 0, 8) !== 'https://' && my_substr($url, 0, 1) !== '/')
+		if(!my_validate_url($url, true))
 		{
 			header("Location: {$mybb->settings['bburl']}/{$url}");
 		}
@@ -1209,7 +1209,7 @@ function user_permissions($uid=0)
  * Fetch the usergroup permissions for a specific group or series of groups combined
  *
  * @param int|string $gid A list of groups (Can be a single integer, or a list of groups separated by a comma)
- * @return array Array of permissions generated for the groups
+ * @return array Array of permissions generated for the groups, containing also a list of comma-separated checked groups under 'all_usergroups' index
  */
 function usergroup_permissions($gid=0)
 {
@@ -1224,14 +1224,16 @@ function usergroup_permissions($gid=0)
 
 	if(count($groups) == 1)
 	{
+		$groupscache[$gid]['all_usergroups'] = $gid;
 		return $groupscache[$gid];
 	}
-	
+
 	$usergroup = array();
+	$usergroup['all_usergroups'] = $gid;
 
 	foreach($groups as $gid)
 	{
-		if(trim($gid) == "" || !$groupscache[$gid])
+		if(trim($gid) == "" || empty($groupscache[$gid]))
 		{
 			continue;
 		}
@@ -1714,14 +1716,19 @@ function is_moderator($fid=0, $action="", $uid=0)
 			{
 				foreach($modcache as $modusers)
 				{
-					if(isset($modusers['users'][$uid]) && $modusers['users'][$uid]['mid'])
+					if(isset($modusers['users'][$uid]) && $modusers['users'][$uid]['mid'] && (!$action || !empty($modusers['users'][$uid][$action])))
 					{
 						return true;
 					}
-					elseif(isset($user_perms['gid']) && isset($modusers['usergroups'][$user_perms['gid']]))
+
+					$groups = explode(',', $user_perms['all_usergroups']);
+
+					foreach($groups as $group)
 					{
-						// Moderating usergroup
-						return true;
+						if(trim($group) != '' && isset($modusers['usergroups'][$group]) && (!$action || !empty($modusers['usergroups'][$group][$action])))
+						{
+							return true;
+						}
 					}
 				}
 			}
@@ -1794,7 +1801,14 @@ function get_post_icons()
 		eval("\$iconlist .= \"".$templates->get("posticons_icon")."\";");
 	}
 
-	eval("\$posticons = \"".$templates->get("posticons")."\";");
+	if(!empty($iconlist))
+	{
+		eval("\$posticons = \"".$templates->get("posticons")."\";");
+	}
+	else
+	{
+		$posticons = '';
+	}
 
 	return $posticons;
 }
@@ -1854,6 +1868,11 @@ function my_setcookie($name, $value="", $expires="", $httponly=false)
 	if($httponly == true)
 	{
 		$cookie .= "; HttpOnly";
+	}
+
+	if($mybb->settings['cookiesecureflag'])
+	{
+		$cookie .= "; Secure";
 	}
 
 	$mybb->cookies[$name] = $value;
@@ -2145,7 +2164,7 @@ function my_unserialize($str)
 	{
 		mb_internal_encoding($mbIntEnc);
 	}
-	
+
 	return $out;
 }
 
@@ -2165,27 +2184,27 @@ function _safe_serialize( $value )
 	{
 		return 'N;';
 	}
-	
+
 	if(is_bool($value))
 	{
 		return 'b:'.(int)$value.';';
 	}
-	
+
 	if(is_int($value))
 	{
 		return 'i:'.$value.';';
 	}
-	
+
 	if(is_float($value))
 	{
 		return 'd:'.str_replace(',', '.', $value).';';
 	}
-	
+
 	if(is_string($value))
 	{
 		return 's:'.strlen($value).':"'.$value.'";';
 	}
-	
+
 	if(is_array($value))
 	{
 		$out = '';
@@ -2193,7 +2212,7 @@ function _safe_serialize( $value )
 		{
 			$out .= _safe_serialize($k) . _safe_serialize($v);
 		}
-		
+
 		return 'a:'.count($value).':{'.$out.'}';
 	}
 
@@ -2216,13 +2235,13 @@ function my_serialize($value)
 		$mbIntEnc = mb_internal_encoding();
 		mb_internal_encoding('ASCII');
 	}
-	
+
 	$out = _safe_serialize($value);
 	if(isset($mbIntEnc))
 	{
 		mb_internal_encoding($mbIntEnc);
 	}
-	
+
 	return $out;
 }
 
@@ -2414,7 +2433,7 @@ function update_stats($changes=array(), $force=false)
 		$query = $db->simple_select("users", "uid, username", "", array('order_by' => 'regdate', 'order_dir' => 'DESC', 'limit' => 1));
 		$lastmember = $db->fetch_array($query);
 		$new_stats['lastuid'] = $lastmember['uid'];
-		$new_stats['lastusername'] = $lastmember['username'];
+		$new_stats['lastusername'] = $lastmember['username'] = htmlspecialchars_uni($lastmember['username']);
 	}
 
 	if(!empty($new_stats))
@@ -2432,9 +2451,9 @@ function update_stats($changes=array(), $force=false)
 	// Update stats row for today in the database
 	$todays_stats = array(
 		"dateline" => mktime(0, 0, 0, date("m"), date("j"), date("Y")),
-		"numusers" => $stats['numusers'],
-		"numthreads" => $stats['numthreads'],
-		"numposts" => $stats['numposts']
+		"numusers" => (int)$stats['numusers'],
+		"numthreads" => (int)$stats['numthreads'],
+		"numposts" => (int)$stats['numposts']
 	);
 	$db->replace_query("stats", $todays_stats, "dateline");
 
@@ -2975,7 +2994,7 @@ function random_str($length=8, $complex=false)
 	{
 		$str[] = $set[my_rand(0, 61)];
 	}
-	
+
 	// Make sure they're in random order and convert them to a string
 	shuffle($str);
 
@@ -3028,7 +3047,7 @@ function format_name($username, $usergroup, $displaygroup=0)
  */
 function format_avatar($avatar, $dimensions = '', $max_dimensions = '')
 {
-	global $mybb;
+	global $mybb, $theme;
 	static $avatars;
 
 	if(!isset($avatars))
@@ -3036,10 +3055,21 @@ function format_avatar($avatar, $dimensions = '', $max_dimensions = '')
 		$avatars = array();
 	}
 
+	if(my_strpos($avatar, '://') !== false && !$mybb->settings['allowremoteavatars'])
+	{
+		// Remote avatar, but remote avatars are disallowed.
+		$avatar = null;
+	}
+
 	if(!$avatar)
 	{
 		// Default avatar
-		$avatar = $mybb->settings['useravatar'];
+		if(defined('IN_ADMINCP'))
+		{
+			$theme['imgdir'] = '../images';
+		}
+
+		$avatar = str_replace('{theme}', $theme['imgdir'], $mybb->settings['useravatar']);
 		$dimensions = $mybb->settings['useravatardims'];
 	}
 
@@ -3214,12 +3244,6 @@ function build_mycode_inserter($bind="message", $smilies = true)
 			$emoticons_enabled = "false";
 			if($smilies)
 			{
-				if($mybb->settings['smilieinserter'] && $mybb->settings['smilieinsertercols'] && $mybb->settings['smilieinsertertot'])
-				{
-					$emoticon = ",emoticon";
-				}
-				$emoticons_enabled = "true";
-
 				if(!$smiliecache)
 				{
 					if(!isset($smilie_cache) || !is_array($smilie_cache))
@@ -3232,6 +3256,12 @@ function build_mycode_inserter($bind="message", $smilies = true)
 						$smiliecache[$smilie['sid']] = $smilie;
 					}
 				}
+
+				if($mybb->settings['smilieinserter'] && $mybb->settings['smilieinsertercols'] && $mybb->settings['smilieinsertertot'] && !empty($smiliecache))
+				{
+					$emoticon = ",emoticon";
+				}
+				$emoticons_enabled = "true";
 
 				unset($smilie);
 
@@ -3256,7 +3286,7 @@ function build_mycode_inserter($bind="message", $smilies = true)
 
 						if(!$mybb->settings['smilieinserter'] || !$mybb->settings['smilieinsertercols'] || !$mybb->settings['smilieinsertertot'] || !$smilie['showclickable'])
 						{
-							$hiddensmilies .= '"'.$find.'": "'.$image.'",';							
+							$hiddensmilies .= '"'.$find.'": "'.$image.'",';
 						}
 						elseif($i < $mybb->settings['smilieinsertertot'])
 						{
@@ -3367,11 +3397,8 @@ function build_clickable_smilies()
 			}
 			foreach($smilie_cache as $smilie)
 			{
-				if($smilie['showclickable'] != 0)
-				{
-					$smilie['image'] = str_replace("{theme}", $theme['imgdir'], $smilie['image']);
-					$smiliecache[$smilie['sid']] = $smilie;
-				}
+				$smilie['image'] = str_replace("{theme}", $theme['imgdir'], $smilie['image']);
+				$smiliecache[$smilie['sid']] = $smilie;
 			}
 		}
 
@@ -3392,24 +3419,19 @@ function build_clickable_smilies()
 				eval("\$getmore = \"".$templates->get("smilieinsert_getmore")."\";");
 			}
 
-			$smilies = "";
+			$smilies = '';
 			$counter = 0;
 			$i = 0;
 
 			$extra_class = '';
 			foreach($smiliecache as $smilie)
 			{
-				if($i < $mybb->settings['smilieinsertertot'])
+				if($i < $mybb->settings['smilieinsertertot'] && $smilie['showclickable'] != 0)
 				{
-					if($counter == 0)
-					{
-						$smilies .=  "<tr>\n";
-					}
-					
 					$smilie['image'] = str_replace("{theme}", $theme['imgdir'], $smilie['image']);
 					$smilie['image'] = htmlspecialchars_uni($mybb->get_asset_url($smilie['image']));
 					$smilie['name'] = htmlspecialchars_uni($smilie['name']);
-					
+
 					// Only show the first text to replace in the box
 					$temp = explode("\n", $smilie['find']); // assign to temporary variable for php 5.3 compatibility
 					$smilie['find'] = $temp[0];
@@ -3419,14 +3441,15 @@ function build_clickable_smilies()
 					$onclick = " onclick=\"MyBBEditor.insertText(' $find ');\"";
 					$extra_class = ' smilie_pointer';
 					eval('$smilie = "'.$templates->get('smilie', 1, 0).'";');
-					eval("\$smilies .= \"".$templates->get("smilieinsert_smilie")."\";");
+					eval("\$smilie_icons .= \"".$templates->get("smilieinsert_smilie")."\";");
 					++$i;
 					++$counter;
 
 					if($counter == $mybb->settings['smilieinsertercols'])
 					{
 						$counter = 0;
-						$smilies .= "</tr>\n";
+						eval("\$smilies .= \"".$templates->get("smilieinsert_row")."\";");
+						$smilie_icons = '';
 					}
 				}
 			}
@@ -3434,7 +3457,7 @@ function build_clickable_smilies()
 			if($counter != 0)
 			{
 				$colspan = $mybb->settings['smilieinsertercols'] - $counter;
-				$smilies .= "<td colspan=\"{$colspan}\">&nbsp;</td>\n</tr>\n";
+				eval("\$smilies .= \"".$templates->get("smilieinsert_row_empty")."\";");
 			}
 
 			eval("\$clickablesmilies = \"".$templates->get("smilieinsert")."\";");
@@ -3505,14 +3528,15 @@ function build_prefixes($pid=0)
 }
 
 /**
- * Build the thread prefix selection menu
+ * Build the thread prefix selection menu for the current user
  *
  *  @param int|string $fid The forum ID (integer ID or string all)
  *  @param int|string $selected_pid The selected prefix ID (integer ID or string any)
  *  @param int $multiple Allow multiple prefix selection
+ *  @param int $previous_pid The previously selected prefix ID
  *  @return string The thread prefix selection menu
  */
-function build_prefix_select($fid, $selected_pid=0, $multiple=0)
+function build_prefix_select($fid, $selected_pid=0, $multiple=0, $previous_pid=0)
 {
 	global $cache, $db, $lang, $mybb, $templates;
 
@@ -3524,18 +3548,8 @@ function build_prefix_select($fid, $selected_pid=0, $multiple=0)
 	$prefix_cache = build_prefixes(0);
 	if(empty($prefix_cache))
 	{
-		return false; // We've got no prefixes to show
-	}
-
-	$groups = array($mybb->user['usergroup']);
-	if($mybb->user['additionalgroups'])
-	{
-		$exp = explode(",", $mybb->user['additionalgroups']);
-
-		foreach($exp as $group)
-		{
-			$groups[] = $group;
-		}
+		// We've got no prefixes to show
+		return '';
 	}
 
 	// Go through each of our prefixes and decide which ones we can use
@@ -3547,36 +3561,23 @@ function build_prefix_select($fid, $selected_pid=0, $multiple=0)
 			// Decide whether this prefix can be used in our forum
 			$forums = explode(",", $prefix['forums']);
 
-			if(!in_array($fid, $forums))
+			if(!in_array($fid, $forums) && $prefix['pid'] != $previous_pid)
 			{
 				// This prefix is not in our forum list
 				continue;
 			}
 		}
 
-		if($prefix['groups'] != "-1")
+		if(is_member($prefix['groups']) || $prefix['pid'] == $previous_pid)
 		{
-			$prefix_groups = explode(",", $prefix['groups']);
-
-			foreach($groups as $group)
-			{
-				if(in_array($group, $prefix_groups) && !isset($prefixes[$prefix['pid']]))
-				{
-					// Our group can use this prefix!
-					$prefixes[$prefix['pid']] = $prefix;
-				}
-			}
-		}
-		else
-		{
-			// This prefix is for anybody to use...
+			// The current user can use this prefix
 			$prefixes[$prefix['pid']] = $prefix;
 		}
 	}
 
 	if(empty($prefixes))
 	{
-		return false;
+		return '';
 	}
 
 	$prefixselect = $prefixselect_prefix = '';
@@ -3621,10 +3622,11 @@ function build_prefix_select($fid, $selected_pid=0, $multiple=0)
 }
 
 /**
- * Build the thread prefix selection menu for a forum
+ * Build the thread prefix selection menu for a forum without group permission checks
  *
  *  @param int $fid The forum ID (integer ID)
  *  @param int $selected_pid The selected prefix ID (integer ID)
+ *  @return string The thread prefix selection menu
  */
 function build_forum_prefix_select($fid, $selected_pid=0)
 {
@@ -3635,7 +3637,8 @@ function build_forum_prefix_select($fid, $selected_pid=0)
 	$prefix_cache = build_prefixes(0);
 	if(empty($prefix_cache))
 	{
-		return false; // We've got no prefixes to show
+		// We've got no prefixes to show
+		return '';
 	}
 
 	// Go through each of our prefixes and decide which ones we can use
@@ -3662,12 +3665,12 @@ function build_forum_prefix_select($fid, $selected_pid=0)
 
 	if(empty($prefixes))
 	{
-		return false;
+		return '';
 	}
 
 	$default_selected = array();
 	$selected_pid = (int)$selected_pid;
-	
+
 	if($selected_pid == 0)
 	{
 		$default_selected['all'] = ' selected="selected"';
@@ -3823,7 +3826,7 @@ function get_reputation($reputation, $uid=0)
 	{
 		$reputation_class = "reputation_neutral";
 	}
-	
+
 	$reputation = my_number_format($reputation);
 
 	if($uid != 0)
@@ -4159,9 +4162,9 @@ function get_unviewable_forums($only_readable_threads=false)
 			$unviewable[] = $forum['fid'];
 		}
 	}
-	
+
 	$unviewableforums = implode(',', $unviewable);
-	
+
 	return $unviewableforums;
 }
 
@@ -4837,14 +4840,7 @@ function leave_usergroup($uid, $leavegroup)
 {
 	global $db, $mybb, $cache;
 
-	if($uid == $mybb->user['uid'])
-	{
-		$user = $mybb->user;
-	}
-	else
-	{
-		$user = get_user($uid);
-	}
+	$user = get_user($uid);
 
 	$groupslist = $comma = '';
 	$usergroups = $user['additionalgroups'].",";
@@ -4915,7 +4911,7 @@ function get_current_location($fields=false, $ignore=array(), $quick=false)
 	{
 		$location = htmlspecialchars_uni($_ENV['PATH_INFO']);
 	}
-	
+
 	if($quick)
 	{
 		return $location;
@@ -5027,13 +5023,6 @@ function build_theme_select($name, $selected=-1, $tid=0, $depth="", $usergroup_o
 
 	if(is_array($tcache[$tid]))
 	{
-		// Figure out what groups this user is in
-		if(isset($mybb->user['additionalgroups']))
-		{
-			$in_groups = explode(",", $mybb->user['additionalgroups']);
-		}
-		$in_groups[] = $mybb->user['usergroup'];
-
 		foreach($tcache[$tid] as $theme)
 		{
 			$sel = "";
@@ -5731,6 +5720,7 @@ function unichr($c)
  */
 function get_event_poster($event)
 {
+	$event['username'] = htmlspecialchars_uni($event['username']);
 	$event['username'] = format_name($event['username'], $event['usergroup'], $event['displaygroup']);
 	$event_poster = build_profile_link($event['username'], $event['author']);
 	return $event_poster;
@@ -5747,7 +5737,7 @@ function get_event_date($event)
 	global $mybb;
 
 	$event_date = explode("-", $event['date']);
-	$event_date = mktime(0, 0, 0, $event_date[1], $event_date[0], $event_date[2]);
+	$event_date = gmmktime(0, 0, 0, $event_date[1], $event_date[0], $event_date[2]);
 	$event_date = my_date($mybb->settings['dateformat'], $event_date);
 
 	return $event_date;
@@ -6172,31 +6162,6 @@ function get_post($pid)
 }
 
 /**
- * Get the reputation point data
- *
- * @param int $rid The reputation id
- * @return array|bool The database row of the reputation point. False on failure
- */
-function get_reputation_point($rid)
-{
-	global $db;
-	
-	$rid = (int)$rid;
-	
-	$query = $db->simple_select("reputation", "*", "rid = '{$rid}'");
-	$rep = $db->fetch_array($query);
-	
-	if($rep)
-	{
-		return $rep;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-/**
  * Get inactivate forums.
  *
  * @return string The comma separated values of the inactivate forum.
@@ -6226,7 +6191,7 @@ function get_inactive_forums()
 			}
 		}
 	}
-	
+
 	$inactiveforums = implode(",", $inactive);
 
 	return $inactiveforums;
@@ -6731,6 +6696,8 @@ function get_supported_timezones()
 		"6.5" => $lang->timezone_gmt_650,
 		"7" => $lang->timezone_gmt_700,
 		"8" => $lang->timezone_gmt_800,
+		"8.5" => $lang->timezone_gmt_850,
+		"8.75" => $lang->timezone_gmt_875,
 		"9" => $lang->timezone_gmt_900,
 		"9.5" => $lang->timezone_gmt_950,
 		"10" => $lang->timezone_gmt_1000,
@@ -6804,10 +6771,65 @@ function build_timezone_select($name, $selected=0, $short=false)
  *
  * @param string $url The URL of the remote file
  * @param array $post_data The array of post data
+ * @param int $max_redirects Number of maximum redirects
  * @return string|bool The remote file contents. False on failure
  */
-function fetch_remote_file($url, $post_data=array())
+function fetch_remote_file($url, $post_data=array(), $max_redirects=20)
 {
+	global $mybb, $config;
+
+	if(!my_validate_url($url, true))
+	{
+		return false;
+	}
+
+	$url_components = @parse_url($url);
+
+	if(!isset($url_components['scheme']))
+	{
+		$url_components['scheme'] = 'https';
+	}
+	if(!isset($url_components['port']))
+	{
+		$url_components['port'] = $url_components['scheme'] == 'https' ? 443 : 80;
+	}
+
+	if(
+		!$url_components ||
+		empty($url_components['host']) ||
+		(!empty($url_components['scheme']) && !in_array($url_components['scheme'], array('http', 'https'))) ||
+		(!in_array($url_components['port'], array(80, 8080, 443))) ||
+		(!empty($config['disallowed_remote_hosts']) && in_array($url_components['host'], $config['disallowed_remote_hosts']))
+	)
+	{
+		return false;
+	}
+
+	$addresses = get_ip_by_hostname($url_components['host']);
+	$destination_address = $addresses[0];
+
+	if(!empty($config['disallowed_remote_addresses']))
+	{
+		foreach($config['disallowed_remote_addresses'] as $disallowed_address)
+		{
+			$ip_range = fetch_ip_range($disallowed_address);
+
+			$packed_address = my_inet_pton($destination_address);
+
+			if(is_array($ip_range))
+			{
+				if(strcmp($ip_range[0], $packed_address) <= 0 && strcmp($ip_range[1], $packed_address) >= 0)
+				{
+					return false;
+				}
+			}
+			elseif($destination_address == $disallowed_address)
+			{
+				return false;
+			}
+		}
+	}
+
 	$post_body = '';
 	if(!empty($post_data))
 	{
@@ -6820,53 +6842,136 @@ function fetch_remote_file($url, $post_data=array())
 
 	if(function_exists("curl_init"))
 	{
+		$fetch_header = $max_redirects > 0;
+
 		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_HEADER, 0);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 10);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+		$curlopt = array(
+			CURLOPT_URL => $url,
+			CURLOPT_HEADER => $fetch_header,
+			CURLOPT_TIMEOUT => 10,
+			CURLOPT_RETURNTRANSFER => 1,
+			CURLOPT_FOLLOWLOCATION => 0,
+		);
+
+		if($ca_bundle_path = get_ca_bundle_path())
+		{
+			$curlopt[CURLOPT_SSL_VERIFYPEER] = 1;
+			$curlopt[CURLOPT_CAINFO] = $ca_bundle_path;
+		}
+		else
+		{
+			$curlopt[CURLOPT_SSL_VERIFYPEER] = 0;
+		}
+
+		$curl_version_info = curl_version();
+		$curl_version = $curl_version_info['version'];
+
+		if(version_compare(PHP_VERSION, '7.0.7', '>=') && version_compare($curl_version, '7.49', '>='))
+		{
+			// CURLOPT_CONNECT_TO
+			$curlopt[10243] = array(
+				$url_components['host'].':'.$url_components['port'].':'.$destination_address
+			);
+		}
+		elseif(version_compare(PHP_VERSION, '5.5', '>=') && version_compare($curl_version, '7.21.3', '>='))
+		{
+			// CURLOPT_RESOLVE
+			$curlopt[10203] = array(
+				$url_components['host'].':'.$url_components['port'].':'.$destination_address
+			);
+		}
+
 		if(!empty($post_body))
 		{
-			curl_setopt($ch, CURLOPT_POST, 1);
-			curl_setopt($ch, CURLOPT_POSTFIELDS, $post_body);
+			$curlopt[CURLOPT_POST] = 1;
+			$curlopt[CURLOPT_POSTFIELDS] = $post_body;
 		}
-		$data = curl_exec($ch);
+
+		curl_setopt_array($ch, $curlopt);
+
+		$response = curl_exec($ch);
+
+		if($fetch_header)
+		{
+			$header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+			$header = substr($response, 0, $header_size);
+			$body = substr($response, $header_size);
+
+			if(in_array(curl_getinfo($ch, CURLINFO_HTTP_CODE), array(301, 302)))
+			{
+				preg_match('/Location:(.*?)(?:\n|$)/', $header, $matches);
+
+				if($matches)
+				{
+					$data = fetch_remote_file(trim(array_pop($matches)), $post_data, --$max_redirects);
+				}
+			}
+			else
+			{
+				$data = $body;
+			}
+		}
+		else
+		{
+			$data = $response;
+		}
+
 		curl_close($ch);
 		return $data;
 	}
 	else if(function_exists("fsockopen"))
 	{
-		$url = @parse_url($url);
-		if(!$url['host'])
+		if(!isset($url_components['path']))
 		{
-			return false;
+			$url_components['path'] = "/";
 		}
-		if(!$url['port'])
+		if(isset($url_components['query']))
 		{
-			$url['port'] = 80;
-		}
-		if(!$url['path'])
-		{
-			$url['path'] = "/";
-		}
-		if($url['query'])
-		{
-			$url['path'] .= "?{$url['query']}";
+			$url_components['path'] .= "?{$url_components['query']}";
 		}
 
 		$scheme = '';
 
-		if($url['scheme'] == 'https')
+		if($url_components['scheme'] == 'https')
 		{
 			$scheme = 'ssl://';
-			if($url['port'] == 80)
+			if($url_components['port'] == 80)
 			{
-				$url['port'] = 443;
+				$url_components['port'] = 443;
 			}
 		}
 
-		$fp = @fsockopen($scheme.$url['host'], $url['port'], $error_no, $error, 10);
+		if(function_exists('stream_context_create'))
+		{
+			if($url_components['scheme'] == 'https' && $ca_bundle_path = get_ca_bundle_path())
+			{
+				$context = stream_context_create(array(
+					'ssl' => array(
+						'verify_peer' => true,
+						'verify_peer_name' => true,
+						'peer_name' => $url_components['host'],
+						'cafile' => $ca_bundle_path,
+					),
+				));
+			}
+			else
+			{
+				$context = stream_context_create(array(
+					'ssl' => array(
+						'verify_peer' => false,
+						'verify_peer_name' => false,
+					),
+				));
+			}
+
+			$fp = @stream_socket_client($scheme.$destination_address.':'.(int)$url_components['port'], $error_no, $error, 10, STREAM_CLIENT_CONNECT, $context);
+		}
+		else
+		{
+			$fp = @fsockopen($scheme.$url_components['host'], (int)$url_components['port'], $error_no, $error, 10);
+		}
+
 		@stream_set_timeout($fp, 10);
 		if(!$fp)
 		{
@@ -6875,16 +6980,16 @@ function fetch_remote_file($url, $post_data=array())
 		$headers = array();
 		if(!empty($post_body))
 		{
-			$headers[] = "POST {$url['path']} HTTP/1.0";
+			$headers[] = "POST {$url_components['path']} HTTP/1.0";
 			$headers[] = "Content-Length: ".strlen($post_body);
 			$headers[] = "Content-Type: application/x-www-form-urlencoded";
 		}
 		else
 		{
-			$headers[] = "GET {$url['path']} HTTP/1.0";
+			$headers[] = "GET {$url_components['path']} HTTP/1.0";
 		}
 
-		$headers[] = "Host: {$url['host']}";
+		$headers[] = "Host: {$url_components['host']}";
 		$headers[] = "Connection: Close";
 		$headers[] = '';
 
@@ -6903,22 +7008,87 @@ function fetch_remote_file($url, $post_data=array())
 		{
 			return false;
 		}
+
+		$data = null;
+
 		while(!feof($fp))
 		{
 			$data .= fgets($fp, 12800);
 		}
 		fclose($fp);
+
 		$data = explode("\r\n\r\n", $data, 2);
-		return $data[1];
-	}
-	else if(empty($post_data))
-	{
-		return @implode("", @file($url));
+
+		$header = $data[0];
+		$status_line = current(explode("\n\n", $header, 1));
+		$body = $data[1];
+
+		if($max_redirects > 0 && (strstr($status_line, ' 301 ') || strstr($status_line, ' 302 ')))
+		{
+			preg_match('/Location:(.*?)(?:\n|$)/', $header, $matches);
+
+			if($matches)
+			{
+				$data = fetch_remote_file(trim(array_pop($matches)), $post_data, --$max_redirects);
+			}
+		}
+		else
+		{
+			$data = $body;
+		}
+
+		return $data;
 	}
 	else
 	{
 		return false;
 	}
+}
+
+/**
+ * Resolves a hostname into a set of IP addresses.
+ *
+ * @param string $hostname The hostname to be resolved
+ * @return array|bool The resulting IP addresses. False on failure
+ */
+function get_ip_by_hostname($hostname)
+{
+	$addresses = @gethostbynamel($hostname);
+
+	if(!$addresses)
+	{
+		$result_set = @dns_get_record($hostname, DNS_A | DNS_AAAA);
+
+		if($result_set)
+		{
+			$addresses = array_column($result_set, 'ip');
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	return $addresses;
+}
+
+/**
+ * Returns the location of the CA bundle defined in the PHP configuration.
+ *
+ * @return string|bool The location of the CA bundle, false if not set
+ */
+function get_ca_bundle_path()
+{
+	if($path = ini_get('openssl.cafile'))
+	{
+		return $path;
+	}
+	if($path = ini_get('curl.cainfo'))
+	{
+		return $path;
+	}
+
+	return false;
 }
 
 /**
@@ -6959,7 +7129,7 @@ function is_super_admin($uid)
 function is_member($groups, $user = false)
 {
 	global $mybb;
-	
+
 	if(empty($groups))
 	{
 		return array();
@@ -7573,7 +7743,7 @@ function verify_files($path=MYBB_ROOT, $count=0)
 	global $mybb, $checksums, $bad_verify_files;
 
 	// We don't need to check these types of files
-	$ignore = array(".", "..", ".svn", "config.php", "settings.php", "Thumb.db", "config.default.php", "lock", "htaccess.txt", "logo.gif", "logo.png");
+	$ignore = array(".", "..", ".svn", "config.php", "settings.php", "Thumb.db", "config.default.php", "lock", "htaccess.txt", "htaccess-nginx.txt", "logo.gif", "logo.png");
 	$ignore_ext = array("attach");
 
 	if(substr($path, -1, 1) == "/")
@@ -7676,129 +7846,186 @@ function signed($int)
 }
 
 /**
- * Returns a securely generated seed for PHP's RNG (Random Number Generator)
+ * Returns a securely generated seed
  *
- * @param int $count Length of the seed bytes (8 is default. Provides good cryptographic variance)
- * @return int An integer equivalent of a secure hexadecimal seed
+ * @return string A secure binary seed
  */
-function secure_seed_rng($count=8)
+function secure_binary_seed_rng($bytes)
 {
-	$output = '';
-	// DIRECTORY_SEPARATOR checks if running windows
-	if(DIRECTORY_SEPARATOR != '\\')
+	$output = null;
+
+	if(version_compare(PHP_VERSION, '7.0', '>='))
 	{
-		// Unix/Linux
-		// Use OpenSSL when available
-		if(function_exists('openssl_random_pseudo_bytes'))
+		try
 		{
-			$output = openssl_random_pseudo_bytes($count);
+			$output = random_bytes($bytes);
+		} catch (Exception $e) {
 		}
-		// Try mcrypt
-		elseif(function_exists('mcrypt_create_iv'))
+	}
+
+	if(strlen($output) < $bytes)
+	{
+		if(@is_readable('/dev/urandom') && ($handle = @fopen('/dev/urandom', 'rb')))
 		{
-			$output = mcrypt_create_iv($count, MCRYPT_DEV_URANDOM);
-		}
-		// Try /dev/urandom
-		elseif(@is_readable('/dev/urandom') && ($handle = @fopen('/dev/urandom', 'rb')))
-		{
-			$output = @fread($handle, $count);
+			$output = @fread($handle, $bytes);
 			@fclose($handle);
 		}
 	}
 	else
 	{
-		// Windows
-		// Use OpenSSL when available
-		// PHP <5.3.4 had a bug which makes that function unusable on Windows
-		if(function_exists('openssl_random_pseudo_bytes') && version_compare(PHP_VERSION, '5.3.4', '>='))
+		return $output;
+	}
+
+	if(strlen($output) < $bytes)
+	{
+		if(function_exists('mcrypt_create_iv'))
 		{
-			$output = openssl_random_pseudo_bytes($count);
+			if (DIRECTORY_SEPARATOR == '/')
+			{
+				$source = MCRYPT_DEV_URANDOM;
+			}
+			else
+			{
+				$source = MCRYPT_RAND;
+			}
+
+			$output = @mcrypt_create_iv($bytes, $source);
 		}
-		// Try mcrypt
-		elseif(function_exists('mcrypt_create_iv'))
+	}
+	else
+	{
+		return $output;
+	}
+
+	if(strlen($output) < $bytes)
+	{
+		if(function_exists('openssl_random_pseudo_bytes'))
 		{
-			$output = mcrypt_create_iv($count, MCRYPT_RAND);
+			// PHP <5.3.4 had a bug which makes that function unusable on Windows
+			if ((DIRECTORY_SEPARATOR == '/') || version_compare(PHP_VERSION, '5.3.4', '>='))
+			{
+				$output = openssl_random_pseudo_bytes($bytes, $crypto_strong);
+				if ($crypto_strong == false)
+				{
+					$output = null;
+				}
+			}
 		}
-		// Try Windows CAPICOM before using our own generator
-		elseif(class_exists('COM'))
+	}
+	else
+	{
+		return $output;
+	}
+
+	if(strlen($output) < $bytes)
+	{
+		if(class_exists('COM'))
 		{
 			try
 			{
 				$CAPI_Util = new COM('CAPICOM.Utilities.1');
 				if(is_callable(array($CAPI_Util, 'GetRandom')))
 				{
-					$output = $CAPI_Util->GetRandom($count, 0);
+					$output = $CAPI_Util->GetRandom($bytes, 0);
 				}
 			} catch (Exception $e) {
 			}
 		}
 	}
-
-	// Didn't work? Do we still not have enough bytes? Use our own (less secure) rng generator
-	if(strlen($output) < $count)
+	else
 	{
-		$output = '';
+		return $output;
+	}
 
+	if(strlen($output) < $bytes)
+	{
 		// Close to what PHP basically uses internally to seed, but not quite.
 		$unique_state = microtime().@getmypid();
 
-		for($i = 0; $i < $count; $i += 16)
+		$rounds = ceil($bytes / 16);
+
+		for($i = 0; $i < $rounds; $i++)
 		{
 			$unique_state = md5(microtime().$unique_state);
-			$output .= pack('H*', md5($unique_state));
+			$output .= md5($unique_state);
 		}
-	}
 
-	// /dev/urandom and openssl will always be twice as long as $count. base64_encode will roughly take up 33% more space but crc32 will put it to 32 characters
-	$output = hexdec(substr(dechex(crc32(base64_encode($output))), 0, $count));
+		$output = substr($output, 0, ($bytes * 2));
+
+		$output = pack('H*', $output);
+
+		return $output;
+	}
+	else
+	{
+		return $output;
+	}
+}
+
+/**
+ * Returns a securely generated seed integer
+ *
+ * @return int An integer equivalent of a secure hexadecimal seed
+ */
+function secure_seed_rng()
+{
+	$bytes = PHP_INT_SIZE;
+
+	do
+	{
+
+		$output = secure_binary_seed_rng($bytes);
+
+		// convert binary data to a decimal number
+		if ($bytes == 4)
+		{
+			$elements = unpack('i', $output);
+			$output = abs($elements[1]);
+		}
+		else
+		{
+			$elements = unpack('N2', $output);
+			$output = abs($elements[1] << 32 | $elements[2]);
+		}
+
+	} while($output > PHP_INT_MAX);
 
 	return $output;
 }
 
 /**
- * Wrapper function for mt_rand. Automatically seeds using a secure seed once.
+ * Generates a cryptographically secure random number.
  *
  * @param int $min Optional lowest value to be returned (default: 0)
- * @param int $max Optional highest value to be returned (default: mt_getrandmax())
- * @param boolean $force_seed True forces it to reseed the RNG first
- * @return int An integer equivalent of a secure hexadecimal seed
+ * @param int $max Optional highest value to be returned (default: PHP_INT_MAX)
  */
-function my_rand($min=null, $max=null, $force_seed=false)
+function my_rand($min=0, $max=PHP_INT_MAX)
 {
-	static $seeded = false;
-	static $obfuscator = 0;
-
-	if($seeded == false || $force_seed == true)
+	// backward compatibility
+	if($min === null || $max === null || $max < $min)
 	{
-		mt_srand(secure_seed_rng());
-		$seeded = true;
+		$min = 0;
+		$max = PHP_INT_MAX;
+	}
 
-		$obfuscator = abs((int) secure_seed_rng());
-
-		// Ensure that $obfuscator is <= mt_getrandmax() for 64 bit systems.
-		if($obfuscator > mt_getrandmax())
+	if(version_compare(PHP_VERSION, '7.0', '>='))
+	{
+		try
 		{
-			$obfuscator -= mt_getrandmax();
+			$result = random_int($min, $max);
+		} catch (Exception $e) {
+		}
+
+		if(isset($result))
+		{
+			return $result;
 		}
 	}
 
-	if($min !== null && $max !== null)
-	{
-		$distance = $max - $min;
-		if($distance > 0)
-		{
-			return $min + (int)((float)($distance + 1) * (float)(mt_rand() ^ $obfuscator) / (mt_getrandmax() + 1));
-		}
-		else
-		{
-			return mt_rand($min, $max);
-		}
-	}
-	else
-	{
-		$val = mt_rand() ^ $obfuscator;
-		return $val;
-	}
+	$seed = secure_seed_rng();
+
+	$distance = $max - $min;
+	return $min + floor($distance * ($seed / PHP_INT_MAX) );
 }
 
 /**
@@ -8137,20 +8364,22 @@ function send_pm($pm, $fromid = 0, $admin_override=false)
 
 		foreach(array('subject', 'message') as $key)
 		{
-			$lang_string = $pm[$key];
 			if(is_array($pm[$key]))
 			{
+				$lang_string = $lang->{$pm[$key][0]};
 				$num_args = count($pm[$key]);
 
 				for($i = 1; $i < $num_args; $i++)
 				{
-					$lang->{$pm[$key][0]} = str_replace('{'.$i.'}', $pm[$key][$i], $lang->{$pm[$key][0]});
+					$lang_string = str_replace('{'.$i.'}', $pm[$key][$i], $lang_string);
 				}
-
-				$lang_string = $pm[$key][0];
+			}
+			else
+			{
+				$lang_string = $lang->{$pm[$key]};
 			}
 
-			$pm[$key] = $lang->{$lang_string};
+			$pm[$key] = $lang_string;
 		}
 
 		if(isset($revert))
@@ -8165,8 +8394,6 @@ function send_pm($pm, $fromid = 0, $admin_override=false)
 	{
 		return false;
 	}
-
-	$lang->load('messages');
 
 	require_once MYBB_ROOT."inc/datahandlers/pm.php";
 
@@ -8346,4 +8573,42 @@ function copy_file_to_cdn($file_path = '', &$uploaded_path = null)
 	}
 
 	return $success;
+}
+
+/**
+ * Validate an url
+ *
+ * @param string $url The url to validate.
+ * @param bool $relative_path Whether or not the url could be a relative path.
+ *
+ * @return bool Whether this is a valid url.
+ */
+function my_validate_url($url, $relative_path=false)
+{
+	if($relative_path && my_substr($url, 0, 1) == '/' || preg_match('_^(?:(?:https?|ftp)://)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\x{00a1}-\x{ffff}0-9]-*)*[a-z\x{00a1}-\x{ffff}0-9]+)(?:\.(?:[a-z\x{00a1}-\x{ffff}0-9]-*)*[a-z\x{00a1}-\x{ffff}0-9]+)*(?:\.(?:[a-z\x{00a1}-\x{ffff}]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*)?$_iuS', $url))
+	{
+		return true;
+	}
+
+	return false;
+}
+
+/**
+ * Strip html tags from string, also removes <script> and <style> contents.
+ * 
+ * @param  string $string         String to stripe
+ * @param  string $allowable_tags Allowed html tags
+ * 
+ * @return string                 Striped string
+ */
+function my_strip_tags($string, $allowable_tags = '')
+{
+	$pattern = array(
+		'@(&lt;)style[^(&gt;)]*?(&gt;).*?(&lt;)/style(&gt;)@siu',
+		'@(&lt;)script[^(&gt;)]*?.*?(&lt;)/script(&gt;)@siu',
+		'@<style[^>]*?>.*?</style>@siu',
+		'@<script[^>]*?.*?</script>@siu',
+	);
+	$string = preg_replace($pattern, '', $string);
+	return strip_tags($string, $allowable_tags);
 }

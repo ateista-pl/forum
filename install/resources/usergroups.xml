@@ -28,6 +28,7 @@
 		<candeleteposts><![CDATA[0]]></candeleteposts>
 		<candeletethreads><![CDATA[0]]></candeletethreads>
 		<caneditattachments><![CDATA[0]]></caneditattachments>
+		<canviewdeletionnotice><![CDATA[0]]></canviewdeletionnotice>
 		<canpostpolls><![CDATA[0]]></canpostpolls>
 		<canvotepolls><![CDATA[0]]></canvotepolls>
 		<canundovotes><![CDATA[0]]></canundovotes>
@@ -63,6 +64,8 @@
 		<cangivereputations><![CDATA[0]]></cangivereputations>
 		<candeletereputations><![CDATA[0]]></candeletereputations>
 		<reputationpower><![CDATA[0]]></reputationpower>
+		<maxreputationsperthread><![CDATA[0]]></maxreputationsperthread>
+		<maxreputationsperuser><![CDATA[0]]></maxreputationsperuser>
 		<maxreputationsday><![CDATA[0]]></maxreputationsday>
 		<candisplaygroup><![CDATA[1]]></candisplaygroup>
 		<attachquota><![CDATA[0]]></attachquota>
@@ -116,6 +119,7 @@
 		<candeleteposts><![CDATA[1]]></candeleteposts>
 		<candeletethreads><![CDATA[1]]></candeletethreads>
 		<caneditattachments><![CDATA[1]]></caneditattachments>
+		<canviewdeletionnotice><![CDATA[1]]></canviewdeletionnotice>
 		<canpostpolls><![CDATA[1]]></canpostpolls>
 		<canvotepolls><![CDATA[1]]></canvotepolls>
 		<canundovotes><![CDATA[0]]></canundovotes>
@@ -151,6 +155,8 @@
 		<cangivereputations><![CDATA[1]]></cangivereputations>
 		<candeletereputations><![CDATA[1]]></candeletereputations>
 		<reputationpower><![CDATA[1]]></reputationpower>
+		<maxreputationsperthread><![CDATA[0]]></maxreputationsperthread>
+		<maxreputationsperuser><![CDATA[0]]></maxreputationsperuser>
 		<maxreputationsday><![CDATA[5]]></maxreputationsday>
 		<candisplaygroup><![CDATA[1]]></candisplaygroup>
 		<attachquota><![CDATA[0]]></attachquota>
@@ -204,6 +210,7 @@
 		<candeleteposts><![CDATA[1]]></candeleteposts>
 		<candeletethreads><![CDATA[1]]></candeletethreads>
 		<caneditattachments><![CDATA[1]]></caneditattachments>
+		<canviewdeletionnotice><![CDATA[1]]></canviewdeletionnotice>
 		<canpostpolls><![CDATA[1]]></canpostpolls>
 		<canvotepolls><![CDATA[1]]></canvotepolls>
 		<canundovotes><![CDATA[1]]></canundovotes>
@@ -239,6 +246,8 @@
 		<cangivereputations><![CDATA[1]]></cangivereputations>
 		<candeletereputations><![CDATA[1]]></candeletereputations>
 		<reputationpower><![CDATA[1]]></reputationpower>
+		<maxreputationsperthread><![CDATA[0]]></maxreputationsperthread>
+		<maxreputationsperuser><![CDATA[0]]></maxreputationsperuser>
 		<maxreputationsday><![CDATA[10]]></maxreputationsday>
 		<candisplaygroup><![CDATA[1]]></candisplaygroup>
 		<attachquota><![CDATA[0]]></attachquota>
@@ -293,6 +302,7 @@
 		<candeleteposts><![CDATA[1]]></candeleteposts>
 		<candeletethreads><![CDATA[1]]></candeletethreads>
 		<caneditattachments><![CDATA[1]]></caneditattachments>
+		<canviewdeletionnotice><![CDATA[1]]></canviewdeletionnotice>
 		<canpostpolls><![CDATA[1]]></canpostpolls>
 		<canvotepolls><![CDATA[1]]></canvotepolls>
 		<canundovotes><![CDATA[1]]></canundovotes>
@@ -328,6 +338,8 @@
 		<cangivereputations><![CDATA[1]]></cangivereputations>
 		<candeletereputations><![CDATA[1]]></candeletereputations>
 		<reputationpower><![CDATA[2]]></reputationpower>
+		<maxreputationsperthread><![CDATA[0]]></maxreputationsperthread>
+		<maxreputationsperuser><![CDATA[0]]></maxreputationsperuser>
 		<maxreputationsday><![CDATA[0]]></maxreputationsday>
 		<candisplaygroup><![CDATA[1]]></candisplaygroup>
 		<attachquota><![CDATA[0]]></attachquota>
@@ -381,6 +393,7 @@
 		<candeleteposts><![CDATA[0]]></candeleteposts>
 		<candeletethreads><![CDATA[0]]></candeletethreads>
 		<caneditattachments><![CDATA[0]]></caneditattachments>
+		<canviewdeletionnotice><![CDATA[0]]></canviewdeletionnotice>
 		<canpostpolls><![CDATA[0]]></canpostpolls>
 		<canvotepolls><![CDATA[0]]></canvotepolls>
 		<canundovotes><![CDATA[0]]></canundovotes>
@@ -416,6 +429,8 @@
 		<cangivereputations><![CDATA[0]]></cangivereputations>
 		<candeletereputations><![CDATA[0]]></candeletereputations>
 		<reputationpower><![CDATA[0]]></reputationpower>
+		<maxreputationsperthread><![CDATA[0]]></maxreputationsperthread>
+		<maxreputationsperuser><![CDATA[0]]></maxreputationsperuser>
 		<maxreputationsday><![CDATA[0]]></maxreputationsday>
 		<candisplaygroup><![CDATA[1]]></candisplaygroup>
 		<attachquota><![CDATA[0]]></attachquota>
@@ -469,6 +484,7 @@
 		<candeleteposts><![CDATA[1]]></candeleteposts>
 		<candeletethreads><![CDATA[1]]></candeletethreads>
 		<caneditattachments><![CDATA[1]]></caneditattachments>
+		<canviewdeletionnotice><![CDATA[1]]></canviewdeletionnotice>
 		<canpostpolls><![CDATA[1]]></canpostpolls>
 		<canvotepolls><![CDATA[1]]></canvotepolls>
 		<canundovotes><![CDATA[0]]></canundovotes>
@@ -504,6 +520,8 @@
 		<cangivereputations><![CDATA[1]]></cangivereputations>
 		<candeletereputations><![CDATA[1]]></candeletereputations>
 		<reputationpower><![CDATA[1]]></reputationpower>
+		<maxreputationsperthread><![CDATA[0]]></maxreputationsperthread>
+		<maxreputationsperuser><![CDATA[0]]></maxreputationsperuser>
 		<maxreputationsday><![CDATA[10]]></maxreputationsday>
 		<candisplaygroup><![CDATA[1]]></candisplaygroup>
 		<attachquota><![CDATA[0]]></attachquota>
@@ -557,6 +575,7 @@
 		<candeleteposts><![CDATA[0]]></candeleteposts>
 		<candeletethreads><![CDATA[0]]></candeletethreads>
 		<caneditattachments><![CDATA[0]]></caneditattachments>
+		<canviewdeletionnotice><![CDATA[0]]></canviewdeletionnotice>
 		<canpostpolls><![CDATA[0]]></canpostpolls>
 		<canvotepolls><![CDATA[0]]></canvotepolls>
 		<canundovotes><![CDATA[0]]></canundovotes>
@@ -592,6 +611,8 @@
 		<cangivereputations><![CDATA[0]]></cangivereputations>
 		<candeletereputations><![CDATA[0]]></candeletereputations>
 		<reputationpower><![CDATA[0]]></reputationpower>
+		<maxreputationsperthread><![CDATA[0]]></maxreputationsperthread>
+		<maxreputationsperuser><![CDATA[0]]></maxreputationsperuser>
 		<maxreputationsday><![CDATA[0]]></maxreputationsday>
 		<candisplaygroup><![CDATA[1]]></candisplaygroup>
 		<attachquota><![CDATA[0]]></attachquota>

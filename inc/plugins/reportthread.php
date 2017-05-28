@@ -115,13 +115,13 @@ function reportthread_deactivate()
 function reportthread_dopost()
 {
 	require_once(MYBB_ROOT . "inc/datahandlers/post.php");
-	global $db, $mybb;
+	global $db, $mybb, $lang;
 	
 	if(intval($mybb->settings['rtt_enabled']) == 1 || preg_replace("/[^a-z]/i", "", $mybb->settings['rtt_enabled']) == "yes")
 	{
 		if($mybb->input['type'] == 'post')
 		{
-			$title = "Reported Post By ";
+			$title = "Post zgłoszony przez ";
 			$post = get_post($mybb->input['pid']);
 			$thread = get_thread($post['tid']);
 			$forum = get_forum($thread['fid']);
@@ -130,37 +130,45 @@ function reportthread_dopost()
 			$flink = get_forum_link($thread['fid']);
 			
 			$reason = $mybb->input['reason'];
-			if($reason === 'other')
+			if($reason === '1')
 				$reason = $mybb->input['comment'];
+			else {
+				$query = $db->simple_select("reportreasons", "title", "rid = ".$reason);
+				$reason = $lang->parse($db->fetch_field($query, "title"));
+			}
 			
-			$post_data = $mybb->user['username'] . " has reported a post.
+			$post_data = $mybb->user['username'] . " zgłosił(a) post.
 
-Original Thread: [url=" . $mybb->settings['bburl'] . "/$tlink]" . $thread['subject'] . "[/url]
-Forum: [url=" . $mybb->settings['bburl'] . "/$flink]" . $forum['name'] . "[/url]
+Wątek: [url=" . $mybb->settings['bburl'] . "/$tlink]" . $thread['subject'] . "[/url]
+Dział: [url=" . $mybb->settings['bburl'] . "/$flink]" . $forum['name'] . "[/url]
 
-Reason Given:
+Podany powód:
 [quote=\"" . $mybb->user['username'] . "\" dateline=\"" . time() . "\"]" . $reason . "[/quote]
 
-Post Content:
+Zawartość posta:
 [quote=\"" . $post['username'] . "\" pid=\"" . $post['pid'] . "\" dateline=\"" . $post['dateline'] . "\"]" . $post['message'] . "[/quote]";
 
 		}
 		else if($mybb->input['type'] == 'reputation')
 		{
-			$title = "Reported Reputation By ";
+			$title = "Punkt reputacji zgłoszony przez ";
 			$rep = get_reputation_point($mybb->input['pid']);
 			$giver = get_user($rep['adduid']);
 			
 			$reason = $mybb->input['reason'];
-			if($reason === 'other')
+			if($reason === '1')
 				$reason = $mybb->input['comment'];
+			else {
+				$query = $db->simple_select("reportreasons", "title", "rid = ".$reason);
+				$reason = $lang->parse($db->fetch_field($query, "title"));
+			}
 
-			$post_data = $mybb->user['username'] . " has reported a reputation point.
+			$post_data = $mybb->user['username'] . " zgłosił(a) punkt reputacji.
 
-Reason Given:
+Powód:
 [quote=\"" . $mybb->user['username'] . "\" dateline=\"" . time() . "\"]" . $reason . "[/quote]
 
-Reputation comment:
+Komentarz do reputacji:
 [quote=\"" . $giver['username'] . "\" dateline=\"" . $rep['dateline'] . "\"]" . $rep['comments'] . "[/quote]";
 		}
 		

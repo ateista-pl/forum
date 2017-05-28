@@ -264,7 +264,7 @@ if($mybb->input['action'] == "add_template")
 <link href="./jscripts/codemirror/addon/dialog/dialog-mybb.css" rel="stylesheet">
 <script src="./jscripts/codemirror/addon/dialog/dialog.js"></script>
 <script src="./jscripts/codemirror/addon/search/searchcursor.js"></script>
-<script src="./jscripts/codemirror/addon/search/search.js"></script>
+<script src="./jscripts/codemirror/addon/search/search.js?ver=1808"></script>
 <script src="./jscripts/codemirror/addon/fold/foldcode.js"></script>
 <script src="./jscripts/codemirror/addon/fold/xml-fold.js"></script>
 <script src="./jscripts/codemirror/addon/fold/foldgutter.js"></script>
@@ -341,6 +341,11 @@ if($mybb->input['action'] == "add_template_group")
 		if(!$prefix)
 		{
 			$errors[] = $lang->error_missing_group_prefix;
+		}
+
+		if(strpos($prefix, "_") !== false)
+		{
+			$errors[] = $lang->error_invalid_group_title;
 		}
 
 		$title = trim($mybb->input['title']);
@@ -636,7 +641,7 @@ if($mybb->input['action'] == "edit_template")
 <link href="./jscripts/codemirror/addon/dialog/dialog-mybb.css" rel="stylesheet">
 <script src="./jscripts/codemirror/addon/dialog/dialog.js"></script>
 <script src="./jscripts/codemirror/addon/search/searchcursor.js"></script>
-<script src="./jscripts/codemirror/addon/search/search.js"></script>
+<script src="./jscripts/codemirror/addon/search/search.js?ver=1808"></script>
 <script src="./jscripts/codemirror/addon/fold/foldcode.js"></script>
 <script src="./jscripts/codemirror/addon/fold/xml-fold.js"></script>
 <script src="./jscripts/codemirror/addon/fold/foldgutter.js"></script>
@@ -766,6 +771,11 @@ if($mybb->input['action'] == "edit_template_group")
 			$errors[] = $lang->error_missing_group_prefix;
 		}
 
+		if(strpos($prefix, "_") !== false)
+		{
+			$errors[] = $lang->error_invalid_group_title;
+		}
+
 		$title = trim($mybb->input['title']);
 		if(!$title)
 		{
@@ -879,13 +889,16 @@ if($mybb->input['action'] == "search_replace")
 					$template_sets[$set['sid']] = $set['title'];
 				}
 
+				$search_string = str_replace(array("\r\n", "\r"), "\n", $mybb->input['find']);
+				$search_string = str_replace(array("  ", "\t"), "", $search_string);
+
 				// Select all templates with that search term
 				$query = $db->query("
 					SELECT t.tid, t.title, t.sid, t.template
 					FROM ".TABLE_PREFIX."templates t
 					LEFT JOIN ".TABLE_PREFIX."templatesets s ON (t.sid=s.sid)
 					LEFT JOIN ".TABLE_PREFIX."templates t2 ON (t.title=t2.title AND t2.sid='1')
-					WHERE t.template LIKE '%".$db->escape_string_like($mybb->input['find'])."%' AND NOT (t.sid = -2 AND (t2.tid) IS NOT NULL)
+					WHERE REPLACE(REPLACE(REPLACE(REPLACE(t.template, '\r\n', '\n'), '\r', '\n'), '  ', ''), '\t', '') LIKE '%".$db->escape_string_like($search_string)."%' AND NOT (t.sid = -2 AND (t2.tid) IS NOT NULL)
 					ORDER BY t.title ASC
 				");
 				if($db->num_rows($query) == 0)
@@ -1176,7 +1189,7 @@ if($mybb->input['action'] == "search_replace")
 <link href="./jscripts/codemirror/addon/dialog/dialog-mybb.css" rel="stylesheet">
 <script src="./jscripts/codemirror/addon/dialog/dialog.js"></script>
 <script src="./jscripts/codemirror/addon/search/searchcursor.js"></script>
-<script src="./jscripts/codemirror/addon/search/search.js"></script>
+<script src="./jscripts/codemirror/addon/search/search.js?ver=1808"></script>
 <script src="./jscripts/codemirror/addon/fold/foldcode.js"></script>
 <script src="./jscripts/codemirror/addon/fold/xml-fold.js"></script>
 <script src="./jscripts/codemirror/addon/fold/foldgutter.js"></script>

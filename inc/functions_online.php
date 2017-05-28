@@ -161,11 +161,28 @@ function fetch_wol_activity($location, $nopermission=false)
 			elseif($parameters['action'] == "profile")
 			{
 				$user_activity['activity'] = "member_profile";
+
 				if(!isset($parameters['uid']))
 				{
 					$parameters['uid'] = 0;
 				}
 				$parameters['uid'] = (int)$parameters['uid'];
+
+				if($parameters['uid'] == 0)
+				{
+					global $memprofile;
+
+					// $user is available in Who's Online but not in Member Profile, use $memprofile instead
+					if(!empty($user['uid']))
+					{
+						$parameters['uid'] = $user['uid'];
+					}
+					elseif(!empty($memprofile['uid']))
+					{
+						$parameters['uid'] = $memprofile['uid'];
+					}
+				}
+
 				if($parameters['uid'] > 0)
 				{
 					$uid_list[$parameters['uid']] = $parameters['uid'];
@@ -600,12 +617,12 @@ function build_friendly_wol_location($user_activity)
 			$query = $db->simple_select("users", "uid,username", "uid IN ($uid_sql)");
 			while($user = $db->fetch_array($query))
 			{
-				$usernames[$user['uid']] = $user['username'];
+				$usernames[$user['uid']] = htmlspecialchars_uni($user['username']);
 			}
 		}
 		else
 		{
-			$usernames[$mybb->user['uid']] = $mybb->user['username'];
+			$usernames[$mybb->user['uid']] = htmlspecialchars_uni($mybb->user['username']);
 		}
 	}
 
@@ -1141,7 +1158,7 @@ function build_wol_row($user)
 				$invisible_mark = '';
 			}
 
-			$user['username'] = format_name($user['username'], $user['usergroup'], $user['displaygroup']);
+			$user['username'] = format_name(htmlspecialchars_uni($user['username']), $user['usergroup'], $user['displaygroup']);
 			$online_name = build_profile_link($user['username'], $user['uid']).$invisible_mark;
 		}
 	}

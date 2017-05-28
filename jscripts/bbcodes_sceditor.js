@@ -78,46 +78,60 @@ $(document).ready(function($) {
 		format: function($elm, content) {
 			var	fontSize,
 				sizes = ['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'],
-				size  = $elm.data('scefontsize');
+				size = $elm.attr('size');;
 
-			if(!size)
-			{
-				fontSize = $elm.css('fontSize');
+				if (!size) {
+					fontSize = $elm.css('fontSize');
+					// Most browsers return px value but IE returns 1-7
+					if(fontSize.indexOf('px') > -1) {
+						// convert size to an int
+						fontSize = fontSize.replace('px', '') - 0;
+						size     = 1;
 
-				// Most browsers return px value but IE returns 1-7
-				if(fontSize.indexOf('px') > -1) {
-					// convert size to an int
-					fontSize = fontSize.replace('px', '') - 0;
-					size     = 1;
+						if(fontSize > 9)
+							size = 2;
+						if(fontSize > 12)
+							size = 3;
+						if(fontSize > 15)
+							size = 4;
+						if(fontSize > 17)
+							size = 5;
+						if(fontSize > 23)
+							size = 6;
+						if(fontSize > 31)
+							size = 7;
+					}
+					else {
+						size = (~~fontSize) + 1;						
+					}
 
-					if(fontSize > 9)
-						size = 2;
-					if(fontSize > 12)
-						size = 3;
-					if(fontSize > 15)
-						size = 4;
-					if(fontSize > 17)
-						size = 5;
-					if(fontSize > 23)
-						size = 6;
-					if(fontSize > 31)
+					if(size > 7)
 						size = 7;
+					if(size < 1)
+						size = 1;
+
+					size = sizes[size-1];
 				}
-				else
-					size = (~~fontSize) + 1;
-
-				if(size > 7)
-					size = 7;
-				if(size < 1)
-					size = 1;
-
-				size = sizes[size-1];
-			}
+				else {
+					size = sizes[size-1];
+				}
 
 			return '[size=' + size + ']' + content + '[/size]';
 		},
 		html: function(token, attrs, content) {
-			return '<span data-scefontsize="' + attrs.defaultattr + '" style="font-size:' + attrs.defaultattr + '">' + content + '</span>';
+			var sizes = ['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'],
+			size = $.inArray(attrs.defaultattr, sizes)+1;
+			if (!isNaN(attrs.defaultattr)) {
+				size = attrs.defaultattr;
+				if(size > 7)
+					size = 7;
+				if(size < 1)
+					size = 1;
+			}
+			if (size < 0) {
+				size = 0;
+			}
+			return '<font data-scefontsize="' + attrs.defaultattr + '" size="' + size + '">' + content + '</font>';
 		}
 	});
 
@@ -136,14 +150,13 @@ $(document).ready(function($) {
 			editor.createDropDown(caller, 'fontsize-picker', content);
 		},
 		exec: function (caller) {
-			var	editor = this,
-				sizes = ['xx-small', 'x-small', 'small', 'medium', 'large', 'x-large', 'xx-large'];
+			var	editor = this;
 
 			$.sceditor.command.get('size')._dropDown(
 				editor,
 				caller,
 				function(fontSize) {
-					editor.wysiwygEditorInsertHtml('<span data-scefontsize=' + sizes[fontSize-1] + ' style="font-size:' + sizes[fontSize-1] + '">', '</span>');
+					editor.execCommand('fontsize', fontSize);
 				}
 			);
 		},
@@ -450,7 +463,8 @@ $(document).ready(function($) {
 					metacafe: '<iframe src="{url}" width="440" height="248" frameborder=0 data-mybb-vt="{type}" data-mybb-vsrc="{src}"></iframe>',
 					veoh: '<iframe src="{url}" width="410" height="341" frameborder="0" data-mybb-vt="{type}" data-mybb-vsrc="{src}"></iframe>',
 					vimeo: '<iframe src="{url}" width="500" height="281" frameborder="0" data-mybb-vt="{type}" data-mybb-vsrc="{src}"></iframe>',
-					youtube: '<iframe width="560" height="315" src="{url}" frameborder="0" data-mybb-vt="{type}" data-mybb-vsrc="{src}"></iframe>'
+					youtube: '<iframe width="560" height="315" src="{url}" frameborder="0" data-mybb-vt="{type}" data-mybb-vsrc="{src}"></iframe>',
+					twitch: '<iframe src="{url}" frameborder="0" scrolling="no" height="378" width="620" data-mybb-vt="{type}" data-mybb-vsrc="{src}"></iframe>'
 				};
 
 			if(html[attrs.defaultattr])
@@ -485,6 +499,10 @@ $(document).ready(function($) {
 						matches = content.match(/(?:v=|v\/|embed\/|youtu\.be\/)(.{11})/);
 						url     = matches ? '//www.youtube.com/embed/' + matches[1] : false;
 						break;
+					case 'twitch':
+						matches = content.match(/twitch\.tv\/(?:[\w+_-]+)\/v\/(\d+)/);
+						url     = matches ? '//player.twitch.tv/?video=v' + matches[1] : false;
+						break;
 				}
 
 				if(url)
@@ -516,6 +534,7 @@ $(document).ready(function($) {
 						'<option value="veoh">' + editor._('Veoh') + '</option>' +
 						'<option value="vimeo">' + editor._('Vimeo') + '</option>' +
 						'<option value="youtube">' + editor._('Youtube') + '</option>' +
+						'<option value="twitch">' + editor._('Twitch') + '</option>' +
 					'</select>'+
 				'</div>' +
 				'<div>' +

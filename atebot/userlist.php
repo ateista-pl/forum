@@ -1,11 +1,11 @@
 <html>
 <head>
-<link rel="stylesheet" href="http://ateista.pl/images/MyBBPro/bootstrap/css/bootstrap.min.css" />
-<link rel="stylesheet" href="http://ateista.pl/images/MyBBPro/octicons/octicons.css" />
-<link type="text/css" rel="stylesheet" href="http://ateista.pl/cache/themes/theme3/global.css" />
-<link type="text/css" rel="stylesheet" href="http://ateista.pl/cache/themes/theme3/bootstrap-fixes.css" />
-<link type="text/css" rel="stylesheet" href="http://ateista.pl/cache/themes/theme3/css3.css" />
-<link type="text/css" rel="stylesheet" href="http://ateista.pl/cache/themes/theme3/color-5.css" />
+<link rel="stylesheet" href="https://ateista.pl/images/MyBBPro/bootstrap/css/bootstrap.min.css" />
+<link rel="stylesheet" href="https://ateista.pl/images/MyBBPro/octicons/octicons.css" />
+<link type="text/css" rel="stylesheet" href="https://ateista.pl/cache/themes/theme3/global.css" />
+<link type="text/css" rel="stylesheet" href="https://ateista.pl/cache/themes/theme3/bootstrap-fixes.css" />
+<link type="text/css" rel="stylesheet" href="https://ateista.pl/cache/themes/theme3/css3.css" />
+<link type="text/css" rel="stylesheet" href="https://ateista.pl/cache/themes/theme3/color-5.css" />
 <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
 </head>
 <body style="background-color: #f7f7ff;">

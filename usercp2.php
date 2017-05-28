@@ -12,7 +12,8 @@ define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'usercp2.php');
 define("ALLOWABLE_PAGE", "removesubscription,removesubscriptions");
 
-$templatelist = 'usercp_nav_messenger,usercp_nav_changename,usercp_nav_profile,usercp_nav_misc,usercp_nav,usercp_addsubscription_thread,usercp_nav_messenger_tracking,usercp_nav_editsignature,usercp_nav_attachments,usercp_nav_messenger_compose,usercp_nav_messenger_folder';
+$templatelist = "usercp_nav_messenger,usercp_nav_profile,usercp_nav,usercp_addsubscription_thread,usercp_nav_messenger_tracking,usercp_nav_messenger_folder";
+$templatelist .= ",usercp_nav_home,usercp_nav_editsignature,usercp_nav_attachments,usercp_nav_changename,usercp_nav_messenger_compose,usercp_nav_misc";
 
 require_once "./global.php";
 require_once MYBB_ROOT."inc/functions_user.php";
@@ -42,14 +43,7 @@ if($mybb->get_input('action') == "do_addsubscription" && $mybb->get_input('type'
 	}
 
 	// Is the currently logged in user a moderator of this forum?
-	if(is_moderator($thread['fid']))
-	{
-		$ismod = true;
-	}
-	else
-	{
-		$ismod = false;
-	}
+	$ismod = is_moderator($thread['fid']);
 
 	// Make sure we are looking at a real thread here.
 	if(($thread['visible'] != 1 && $ismod == false) || ($thread['visible'] > 1 && $ismod == true))
@@ -114,14 +108,7 @@ elseif($mybb->get_input('action') == "addsubscription")
 		}
 
 		// Is the currently logged in user a moderator of this forum?
-		if(is_moderator($thread['fid']))
-		{
-			$ismod = true;
-		}
-		else
-		{
-			$ismod = false;
-		}
+		$ismod = is_moderator($thread['fid']);
 
 		// Make sure we are looking at a real thread here.
 		if(($thread['visible'] != 1 && $ismod == false) || ($thread['visible'] > 1 && $ismod == true))
@@ -202,14 +189,7 @@ elseif($mybb->get_input('action') == "removesubscription")
 		}
 
 		// Is the currently logged in user a moderator of this forum?
-		if(is_moderator($thread['fid']))
-		{
-			$ismod = true;
-		}
-		else
-		{
-			$ismod = false;
-		}
+		$ismod = is_moderator($thread['fid']);
 
 		// Make sure we are looking at a real thread here.
 		if(($thread['visible'] != 1 && $ismod == false) || ($thread['visible'] > 1 && $ismod == true))

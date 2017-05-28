@@ -22,7 +22,7 @@ $l['name_desc'] = "Enter the name of the attachment type.";
 $l['file_extension'] = "File Extension";
 $l['file_extension_desc'] = "Enter the file extension you wish to allow uploads for here (Do not include the period before the extension) (Example: txt)";
 $l['mime_type'] = "MIME Type";
-$l['mime_type_desc'] = "Enter the MIME type sent by the server when downloading files of this type (<a href=\"http://www.webmaster-toolkit.com/mime-types.shtml\">See a list here</a>)";
+$l['mime_type_desc'] = "Enter the MIME type sent by the server when downloading files of this type (<a href=\"http://www.freeformatter.com/mime-types-list.html\">See a list here</a>)";
 $l['maximum_file_size'] = "Maximum File Size (Kilobytes)";
 $l['maximum_file_size_desc'] = "The maximum file size for uploads of this attachment type in Kilobytes (1 MB = 1024 KB)";
 $l['limit_intro'] = "Please ensure the maximum file size is below the smallest of the following PHP limits:";
@@ -42,3 +42,12 @@ $l['success_attachment_type_deleted'] = "The attachment type has been deleted su
 
 $l['confirm_attachment_type_deletion'] = "Are you sure you wish to delete this attachment type?";
 
+$l['success_activated_attachment_type'] = 'The selected attachment type has been activated successfully.';
+$l['success_deactivated_attachment_type'] = 'The selected attachment type has been deactivated successfully.';
+
+$l['enabled'] = "Enabled?";
+$l['avatar_file'] = 'Avatar File';
+$l['avatar_file_desc'] = 'Do you want to allow this attachment type to be used for avatars?';
+
+$l['available_to_groups'] = 'Available to groups';
+$l['available_in_forums'] = 'Available in forums';

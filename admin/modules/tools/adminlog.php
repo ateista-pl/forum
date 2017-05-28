@@ -42,12 +42,13 @@ if($mybb->input['action'] == 'prune')
 	if($mybb->request_method == 'post')
 	{
 		$is_today = false;
+		$mybb->input['older_than'] = $mybb->get_input('older_than', MyBB::INPUT_INT);
 		if($mybb->input['older_than'] <= 0)
 		{
 			$is_today = true;
 			$mybb->input['older_than'] = 1;
 		}
-		$where = 'dateline < '.(TIME_NOW-($mybb->get_input('older_than', MyBB::INPUT_INT)*86400));
+		$where = 'dateline < '.(TIME_NOW-($mybb->input['older_than']*86400));
 
 		// Searching for entries by a particular user
 		if($mybb->input['uid'])
@@ -101,7 +102,7 @@ if($mybb->input['action'] == 'prune')
 	");
 	while($user = $db->fetch_array($query))
 	{
-		$user_options[$user['uid']] = $user['username'];
+		$user_options[$user['uid']] = htmlspecialchars_uni($user['username']);
 	}
 
 	$module_options = array();
@@ -237,6 +238,7 @@ if(!$mybb->input['action'])
 	{
 		$information = '';
 		$trow = alt_trow();
+		$logitem['username'] = htmlspecialchars_uni($logitem['username']);
 		$username = format_name($logitem['username'], $logitem['usergroup'], $logitem['displaygroup']);
 
 		$logitem['data'] = my_unserialize($logitem['data']);
@@ -282,7 +284,7 @@ if(!$mybb->input['action'])
 	");
 	while($user = $db->fetch_array($query))
 	{
-		$user_options[$user['uid']] = $user['username'];
+		$user_options[$user['uid']] = htmlspecialchars_uni($user['username']);
 	}
 
 	$module_options = array();
@@ -488,6 +490,20 @@ function get_admin_log_action($logitem)
 				$lang_string = $detail_lang_string;
 			}
 			break;
+		case 'admin_log_tools_spamlog_prune': // Spam Log Pruning
+			if($logitem['data'][1] && !$logitem['data'][2])
+			{
+				$lang_string = 'admin_log_tools_spamlog_prune_user';
+			}
+			elseif($logitem['data'][2] && !$logitem['data'][1])
+			{
+				$lang_string = 'admin_log_tools_spamlog_prune_email';
+			}
+			elseif($logitem['data'][1] && $logitem['data'][2])
+			{
+				$lang_string = 'admin_log_tools_spamlog_prune_user_email';
+			}
+			break;
 		// == USERS ==
 		case 'admin_log_user_admin_permissions_edit': // editing default/group/user admin permissions
 			if($logitem['data'][0] > 0)
@@ -513,6 +529,16 @@ function get_admin_log_action($logitem)
 				// Group
 				$logitem['data'][0] = abs($logitem['data'][0]);
 				$lang_string .= '_group';
+			}
+			break;
+		case 'admin_log_user_awaiting_activation_activate':
+			if($logitem['data'][0] == 'deleted')
+			{
+				$lang_string .= '_deleted';
+			}
+			else
+			{
+				$lang_string .= '_activated';
 			}
 			break;
 		case 'admin_log_user_banning_': // banning

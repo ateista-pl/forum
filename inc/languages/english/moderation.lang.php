@@ -81,6 +81,7 @@ $l['post_separator'] = "Post Separator";
 $l['new_line'] = "New Line";
 $l['horizontal_rule'] = "Horizontal Rule";
 $l['resolve_fail'] = "N/A (Unable to resolve)";
+$l['time'] = "Time:";
 
 $l['opened'] = "Opened";
 $l['closed'] = "Closed";
@@ -148,7 +149,7 @@ $l['view_notes_for'] = "Viewing Notes for {1}";
 
 $l['purgespammer'] = "Purge Spammer";
 $l['purgespammer_purge'] = "Purge spammer {1}";
-$l['purgespammer_purge_desc'] = "This will delete user's whole content (posts, private messages, events, etc.) and {1} him.";
+$l['purgespammer_purge_desc'] = "This will delete user's whole content (posts, private messages, events, etc.) and {1} them.";
 $l['purgespammer_ban'] = "ban";
 $l['purgespammer_delete'] = "delete";
 $l['purgespammer_submit'] = "Purge Spammer";

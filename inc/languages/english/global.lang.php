@@ -19,6 +19,7 @@ $l['bottomlinks_contactus'] = "Contact Us";
 $l['bottomlinks_returntop'] = "Return to Top";
 $l['bottomlinks_syndication'] = "RSS Syndication";
 $l['bottomlinks_litemode'] = "Lite (Archive) Mode";
+$l['bottomlinks_markread'] = "Mark All Forums Read";
 
 $l['welcome_usercp'] = "User CP";
 $l['welcome_modcp'] = "Mod CP";
@@ -207,6 +208,7 @@ $l['editor_metacafe'] = "MetaCafe";
 $l['editor_veoh'] = "Veoh";
 $l['editor_vimeo'] = "Vimeo";
 $l['editor_youtube'] = "Youtube";
+$l['editor_twitch'] = "Twitch";
 $l['editor_facebook'] = "Facebook";
 $l['editor_liveleak'] = "LiveLeak";
 $l['editor_insertvideo'] = "Insert a video";
@@ -268,6 +270,11 @@ $l['postbit_currently_ignoring_user'] = "The contents of this message are hidden
 $l['postbit_warning_level'] = "Warning Level:";
 $l['postbit_warn'] = "Warn the author for this post";
 $l['postbit_purgespammer'] = "Purge Spammer";
+$l['postbit_post_deleted'] = "This post has been deleted.";
+$l['postbit_post_unapproved'] = "This post is awaiting approval.";
+$l['postbit_thread_deleted'] = "This thread has been deleted.";
+$l['postbit_thread_unapproved'] = "This thread is awaiting approval.";
+$l['postbit_deleted_post_user'] = "This post by {1} has been deleted.";
 
 $l['postbit_button_reputation_add'] = 'Rate';
 $l['postbit_button_website'] = 'Website';
@@ -303,10 +310,13 @@ $l['smilieinsert'] = "Smilies";
 $l['smilieinsert_getmore'] = "get more";
 $l['on'] = "On";
 $l['off'] = "Off";
+$l['remote_avatar_disabled_default_avatar'] = "You are currently using a remote avatar, which has been disabled. The default avatar will be used instead.";
 $l['unread_report'] = "Moderator Notice: There is 1 unread report.";
 $l['unread_reports'] = "Moderator Notice: There are {1} unread reports.";
 $l['pending_joinrequest'] = "Group Leader Notice: You have 1 pending group membership join request.";
 $l['pending_joinrequests'] = "Group Leader Notice: You have {1} pending group membership join requests.";
+
+$l['search_user'] = "Search for a user";
 
 $l['year'] = "Year";
 $l['year_short'] = "y";
@@ -426,9 +436,8 @@ $l['invalid_captcha_transmit'] = "An error occurred with the image verification.
 $l['invalid_nocaptcha_transmit'] = "An error occurred with the human verification. Please try again.";
 $l['captcha_fetch_failure'] = 'There was an error fetching the new captcha.';
 $l['question_fetch_failure'] = 'There was an error fetching the new question.';
-$l['invalid_ayah_result'] = "The Are You a Human game was not completed. Please try again.";
 
-$l['timezone_gmt_minus_1200'] = "(GMT -12:00) Marshall Islands";
+$l['timezone_gmt_minus_1200'] = "(GMT -12:00) Howland and Baker Islands";
 $l['timezone_gmt_minus_1100'] = "(GMT -11:00) Nome, Midway Island";
 $l['timezone_gmt_minus_1000'] = "(GMT -10:00) Hawaii, Papeete";
 $l['timezone_gmt_minus_950'] = "(GMT -9:30) Marquesas Islands";
@@ -451,19 +460,21 @@ $l['timezone_gmt_350'] = "(GMT +3:30) Tehran";
 $l['timezone_gmt_400'] = "(GMT +4:00) Moscow, Abu Dhabi, Baku, Muscat, Tbilisi";
 $l['timezone_gmt_450'] = "(GMT +4:30) Kabul";
 $l['timezone_gmt_500'] = "(GMT +5:00) Islamabad, Karachi, Tashkent";
-$l['timezone_gmt_550'] = "(GMT +5:30) Mumbai, Calcutta, Madras, New Delhi";
+$l['timezone_gmt_550'] = "(GMT +5:30) Mumbai, Kolkata, Chennai, New Delhi";
 $l['timezone_gmt_575'] = "(GMT +5:45) Kathmandu";
 $l['timezone_gmt_600'] = "(GMT +6:00) Almaty, Dhakra, Yekaterinburg";
 $l['timezone_gmt_650'] = "(GMT +6:30) Yangon";
 $l['timezone_gmt_700'] = "(GMT +7:00) Bangkok, Hanoi, Jakarta";
 $l['timezone_gmt_800'] = "(GMT +8:00) Beijing, Hong Kong, Perth, Singapore, Taipei, Manila";
+$l['timezone_gmt_850'] = "(GMT +8:30) Pyongyang";
+$l['timezone_gmt_875'] = "(GMT +8:45) Eucla";
 $l['timezone_gmt_900'] = "(GMT +9:00) Osaka, Sapporo, Seoul, Tokyo, Irkutsk";
 $l['timezone_gmt_950'] = "(GMT +9:30) Adelaide, Darwin";
 $l['timezone_gmt_1000'] = "(GMT +10:00) Melbourne, Papua New Guinea, Sydney, Yakutsk";
 $l['timezone_gmt_1050'] = "(GMT +10:30) Lord Howe Island";
 $l['timezone_gmt_1100'] = "(GMT +11:00) Magadan, New Caledonia, Solomon Islands, Vladivostok";
 $l['timezone_gmt_1150'] = "(GMT +11:30) Norfolk Island";
-$l['timezone_gmt_1200'] = "(GMT +12:00) Auckland, Wellington, Fiji, Marshall Island";
+$l['timezone_gmt_1200'] = "(GMT +12:00) Auckland, Wellington, Fiji, Marshall Islands";
 $l['timezone_gmt_1275'] = "(GMT +12:45) Chatham Islands";
 $l['timezone_gmt_1300'] = "(GMT +13:00) Samoa, Tonga, Tokelau";
 $l['timezone_gmt_1400'] = "(GMT +14:00) Line Islands";
@@ -539,7 +550,7 @@ $l['moderation_user_posts'] = "Please note that new posts you make must be appro
 $l['moderation_forum_thread'] = "Please note that new threads in this forum must be approved by a moderator before becoming visible.";
 $l['moderation_forum_edits'] = "Please note that edited posts in this forum must be approved by a moderator before becoming visible.";
 $l['moderation_forum_edits_quick'] = "Please note that edited posts in this forum must be approved by a moderator before becoming visible.";
-$l['awaiting_message_link'] = " <a href=\"{1}/{2}/index.php?module=user-users&amp;action=search&amp;results=1&amp;conditions=a%3A1%3A%7Bs%3A9%3A%22usergroup%22%3Bs%3A1%3A%225%22%3B%7D\">Go to the ACP</a>.";
+$l['awaiting_message_link'] = " <a href=\"{1}/{2}/index.php?module=user-awaiting_activation\">Go to the ACP</a>.";
 $l['awaiting_message_single'] = "There is 1 account awaiting activation. Please go to your ACP to activate the user.";
 $l['awaiting_message_plural'] = "There are {1} accounts awaiting activation. Please go to your ACP to activate the users.";
 
