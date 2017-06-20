@@ -14,6 +14,7 @@ if(!defined("IN_MYBB"))
 }
 
 $plugins->add_hook("datahandler_login_validate_start", "loginconvert_convert", 1);
+$plugins->add_hook("member_resetpassword_reset", "loginconvert_resetpw", 1);
 
 global $valid_login_types;
 $valid_login_types = array(
@@ -162,6 +163,17 @@ function loginconvert_convert(&$login)
 			$login->login_data = array_merge($user, $update);
 		}
 	}
+}
+
+function loginconvert_resetpw() {
+	global $mybb, $db;
+	$user = $mybb->input['username'];
+	$update = array(
+		"passwordconverttype" => "",
+		"passwordconvert" => "",
+		"passwordconvertsalt" => ""
+	);
+	$db->update_query("users", $update, "username='{$user}'");
 }
 
 // Password functions
