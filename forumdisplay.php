@@ -1122,7 +1122,7 @@ if(!empty($threadcache) && is_array($threadcache))
 		$morelink = '';
 		$thread['posts'] = $thread['replies'] + 1;
 
-		if($ismod)
+		if($thread['unapprovedposts'] > 0 && $ismod)
 		{
 			$thread['posts'] += $thread['unapprovedposts'] + $thread['deletedposts'];
 		}
