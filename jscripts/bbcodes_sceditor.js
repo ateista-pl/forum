@@ -527,13 +527,13 @@ $(document).ready(function($) {
 				'<div>' +
 					'<label for="videotype">' + editor._('Video Type:') + '</label> ' +
 					'<select id="videotype">' +
-						'<option value="dailymotion">' + editor._('Dailymotion') + '</option>' +
+						'<option value="youtube">' + editor._('Youtube') + '</option>' +
+						'<option value="vimeo">' + editor._('Vimeo') + '</option>' +
 						'<option value="facebook">' + editor._('Facebook') + '</option>' +
 						'<option value="liveleak">' + editor._('LiveLeak') + '</option>' +
+						'<option value="dailymotion">' + editor._('Dailymotion') + '</option>' +
 						'<option value="metacafe">' + editor._('MetaCafe') + '</option>' +
 						'<option value="veoh">' + editor._('Veoh') + '</option>' +
-						'<option value="vimeo">' + editor._('Vimeo') + '</option>' +
-						'<option value="youtube">' + editor._('Youtube') + '</option>' +
 						'<option value="twitch">' + editor._('Twitch') + '</option>' +
 					'</select>'+
 				'</div>' +
