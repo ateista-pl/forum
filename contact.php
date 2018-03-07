@@ -11,7 +11,7 @@
 define("IN_MYBB", 1);
 define('THIS_SCRIPT', 'contact.php');
 
-$templatelist = "contact,post_captcha,post_captcha_recaptcha,post_captcha_nocaptcha";
+$templatelist = "contact,post_captcha,post_captcha_recaptcha,post_captcha_recaptcha_invisible,post_captcha_nocaptcha";
 
 require_once "./global.php";
 require_once MYBB_ROOT.'inc/class_captcha.php';
@@ -213,7 +213,7 @@ if($mybb->request_method == "post")
 			$mybb->input['message'] = $parser->parse_badwords($mybb->input['message']);
 		}
 
-		$user = $lang->na;
+		$user = $lang->guest;
 		if($mybb->user['uid'])
 		{
 			$user = htmlspecialchars_uni($mybb->user['username']).' - '.$mybb->settings['bburl'].'/'.get_profile_link($mybb->user['uid']);
@@ -223,7 +223,7 @@ if($mybb->request_method == "post")
 		$message = $lang->sprintf($lang->email_contact, $mybb->input['email'], $user, $session->ipaddress, $mybb->input['message']);
 
 		// Email the administrator
-		my_mail($contactemail, $subject, $message, $mybb->input['email']);
+		my_mail($contactemail, $subject, $message, '', '', '', false, 'text', '', $mybb->get_input('email', MyBB::INPUT_STRING));
 
 		$plugins->run_hooks('contact_do_end');
 

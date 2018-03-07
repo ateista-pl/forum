@@ -13,12 +13,12 @@ define('THIS_SCRIPT', 'newthread.php');
 
 $templatelist = "newthread,previewpost,loginbox,changeuserbox,newthread_postpoll,posticons,codebuttons,postbit,post_attachments_attachment_unapproved,newreply_modoptions_close,newreply_modoptions_stick";
 $templatelist .= ",newthread_disablesmilies,post_attachments_new,post_attachments,post_savedraftbutton,post_subscription_method,post_attachments_attachment_remove,postbit_warninglevel_formatted,postbit_icon";
-$templatelist .= ",forumdisplay_rules,forumdisplay_rules_link,post_attachments_attachment_postinsert,post_attachments_attachment,newthread_signature,post_prefixselect_prefix,post_prefixselect_single";
-$templatelist .= ",member_register_regimage,member_register_regimage_recaptcha,post_captcha_hidden,post_captcha,post_captcha_recaptcha,post_captcha_nocaptcha,postbit_gotopost,newthread_postoptions";
-$templatelist .= ",postbit_avatar,postbit_find,postbit_pm,postbit_rep_button,postbit_www,postbit_email,postbit_reputation,postbit_warn,postbit_warninglevel,postbit_author_user,postbit_author_guest";
+$templatelist .= ",forumdisplay_rules,forumdisplay_rules_link,post_attachments_attachment_postinsert,post_attachments_attachment,newthread_signature,post_prefixselect_prefix,post_prefixselect_single,posticons_icon";
+$templatelist .= ",post_captcha_hidden,post_captcha_recaptcha,post_captcha_recaptcha_invisible,post_captcha_nocaptcha,postbit_gotopost,newthread_postoptions,post_attachments_add";
+$templatelist .= ",postbit_avatar,postbit_find,postbit_pm,postbit_rep_button,postbit_www,postbit_email,postbit_reputation,postbit_warn,postbit_warninglevel,postbit_author_user,postbit_author_guest,post_captcha";
 $templatelist .= ",postbit_signature,postbit_classic,postbit_attachments_thumbnails_thumbnail,postbit_attachments_images_image,postbit_attachments_attachment,postbit_attachments_attachment_unapproved";
-$templatelist .= ",postbit_attachments_thumbnails,postbit_attachments_images,postbit_attachments,postbit_reputation_formatted_link,post_attachments_update,postbit_offline,newreply_modoptions,posticons_icon";
-$templatelist .= ",newthread_draftinput,global_moderation_notice,postbit_online,postbit_away,attachment_icon,postbit_userstar,newthread_multiquote_external,postbit_groupimage,post_attachments_add";
+$templatelist .= ",postbit_attachments_thumbnails,postbit_attachments_images,postbit_attachments,postbit_reputation_formatted_link,post_attachments_update,postbit_offline,newreply_modoptions,newthread_multiquote_external";
+$templatelist .= ",postbit_profilefield_multiselect_value,postbit_profilefield_multiselect,newthread_draftinput,global_moderation_notice,postbit_online,postbit_away,attachment_icon,postbit_userstar,postbit_groupimage";
 
 require_once "./global.php";
 require_once MYBB_ROOT."inc/functions_post.php";
@@ -254,10 +254,10 @@ if($mybb->input['action'] == "do_newthread" && $mybb->request_method == "post")
 	// If this isn't a logged in user, then we need to do some special validation.
 	if($mybb->user['uid'] == 0)
 	{
-		// If they didn't specify a username then give them "Guest"
+		// If they didn't specify a username leave blank so $lang->guest can be used on output
 		if(!$mybb->get_input('username'))
 		{
-			$username = $lang->guest;
+			$username = '';
 		}
 		// Otherwise use the name they specified.
 		else
@@ -744,16 +744,16 @@ if($mybb->input['action'] == "newthread" || $mybb->input['action'] == "editdraft
 
 	$preview = '';
 
-	// If we're preving a post then generate the preview.
+	// If we're previewing a post then generate the preview.
 	if(!empty($mybb->input['previewpost']))
 	{
 		// If this isn't a logged in user, then we need to do some special validation.
 		if($mybb->user['uid'] == 0)
 		{
-			// If they didn't specify a username then give them "Guest"
+			// If they didn't specify a username leave blank so $lang->guest can be used on output
 			if(!$mybb->get_input('username'))
 			{
-				$username = $lang->guest;
+				$username = '';
 			}
 			// Otherwise use the name they specified.
 			else
@@ -807,7 +807,7 @@ if($mybb->input['action'] == "newthread" || $mybb->input['action'] == "editdraft
 		{
 			$valid_username = true;
 		}
-		
+
 		$post_errors = array();
 		// Fetch friendly error messages if this is an invalid post
 		if(!$valid_thread || !$valid_subject || !$valid_username)
@@ -822,10 +822,6 @@ if($mybb->input['action'] == "newthread" || $mybb->input['action'] == "editdraft
 		}
 		else
 		{
-			if(empty($mybb->input['username']))
-			{
-				$mybb->input['username'] = $lang->guest;
-			}
 			$query = $db->query("
 				SELECT u.*, f.*
 				FROM ".TABLE_PREFIX."users u
@@ -833,14 +829,10 @@ if($mybb->input['action'] == "newthread" || $mybb->input['action'] == "editdraft
 				WHERE u.uid='".$mybb->user['uid']."'
 			");
 			$post = $db->fetch_array($query);
-			if(!$mybb->user['uid'] || !$post['username'])
-			{
-				$post['username'] = htmlspecialchars_uni($mybb->get_input('username'));
-			}
-			else
+			$post['username'] = $username;
+			if($mybb->user['uid'])
 			{
 				$post['userusername'] = $mybb->user['username'];
-				$post['username'] = $mybb->user['username'];
 			}
 			$previewmessage = $mybb->get_input('message');
 			$post['message'] = $previewmessage;
@@ -1088,7 +1080,7 @@ if($mybb->input['action'] == "newthread" || $mybb->input['action'] == "editdraft
 			{
 				$post_captcha->build_captcha();
 			}
-			elseif($post_captcha->type == 2 || $post_captcha->type == 4)
+			elseif(in_array($post_captcha->type, array(2, 4, 5)))
 			{
 				$post_captcha->build_recaptcha();
 			}
@@ -1098,7 +1090,7 @@ if($mybb->input['action'] == "newthread" || $mybb->input['action'] == "editdraft
 				$captcha = $post_captcha->html;
 			}
 		}
-		else if($correct && ($post_captcha->type == 2 || $post_captcha->type == 4))
+		else if($correct && (in_array($post_captcha->type, array(2, 4, 5))))
 		{
 			$post_captcha->build_recaptcha();
 

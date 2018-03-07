@@ -322,7 +322,7 @@ function parse_page($contents)
 /**
  * Turn a unix timestamp in to a "friendly" date/time format for the user.
  *
- * @param string $format A date format according to PHP's date structure.
+ * @param string $format A date format (either relative, normal or PHP's date() structure).
  * @param int $stamp The unix timestamp the date should be generated for.
  * @param int|string $offset The offset in hours that should be applied to times. (timezones) Or an empty string to determine that automatically
  * @param int $ty Whether or not to use today/yesterday formatting.
@@ -380,7 +380,7 @@ function my_date($format, $stamp=0, $offset="", $ty=1, $adodb=false)
 	}
 
 	$todaysdate = $yesterdaysdate = '';
-	if($ty && ($format == $mybb->settings['dateformat'] || $format == 'relative'))
+	if($ty && ($format == $mybb->settings['dateformat'] || $format == 'relative' || $format == 'normal'))
 	{
 		$_stamp = TIME_NOW;
 		if($adodb == true)
@@ -470,11 +470,11 @@ function my_date($format, $stamp=0, $offset="", $ty=1, $adodb=false)
 			{
 				if($todaysdate == $date)
 				{
-					$date = $lang->sprintf($lang->today, $real_date);
+					$date = $lang->sprintf($lang->today_rel, $real_date);
 				}
 				else if($yesterdaysdate == $date)
 				{
-					$date = $lang->sprintf($lang->yesterday, $real_date);
+					$date = $lang->sprintf($lang->yesterday_rel, $real_date);
 				}
 			}
 
@@ -489,17 +489,42 @@ function my_date($format, $stamp=0, $offset="", $ty=1, $adodb=false)
 			}
 		}
 	}
+	elseif($format == 'normal')
+	{
+		// Normal format both date and time
+		if($ty != 2)
+		{
+			if($todaysdate == $date)
+			{
+				$date = $lang->today;
+			}
+			else if($yesterdaysdate == $date)
+			{
+				$date = $lang->yesterday;
+			}
+		}
+
+		$date .= $mybb->settings['datetimesep'];
+		if($adodb == true)
+		{
+			$date .= adodb_date($mybb->settings['timeformat'], $stamp + ($offset * 3600));
+		}
+		else
+		{
+			$date .= gmdate($mybb->settings['timeformat'], $stamp + ($offset * 3600));
+		}
+	}
 	else
 	{
 		if($ty && $format == $mybb->settings['dateformat'])
 		{
 			if($todaysdate == $date)
 			{
-				$date = $lang->sprintf($lang->today, $real_date);
+				$date = $lang->today;
 			}
 			else if($yesterdaysdate == $date)
 			{
-				$date = $lang->sprintf($lang->yesterday, $real_date);
+				$date = $lang->yesterday;
 			}
 		}
 		else
@@ -1193,13 +1218,13 @@ function user_permissions($uid=0)
 	if($uid != $mybb->user['uid'])
 	{
 		// We've already cached permissions for this user, return them.
-		if($user_cache[$uid]['permissions'])
+		if(!empty($user_cache[$uid]['permissions']))
 		{
 			return $user_cache[$uid]['permissions'];
 		}
 
 		// This user was not already cached, fetch their user information.
-		if(!$user_cache[$uid])
+		if(empty($user_cache[$uid]))
 		{
 			$user_cache[$uid] = get_user($uid);
 		}
@@ -3797,6 +3822,13 @@ function log_moderator_action($data, $action="")
 		unset($data['pid']);
 	}
 
+	$tids = array();
+	if(isset($data['tids']))
+	{
+		$tids = (array)$data['tids'];
+		unset($data['tids']);
+	}
+
 	// Any remaining extra data - we my_serialize and insert in to its own column
 	if(is_array($data))
 	{
@@ -3813,7 +3845,23 @@ function log_moderator_action($data, $action="")
 		"data" => $db->escape_string($data),
 		"ipaddress" => $db->escape_binary($session->packedip)
 	);
-	$db->insert_query("moderatorlog", $sql_array);
+
+	if($tids)
+	{
+		$multiple_sql_array = array();
+
+		foreach($tids as $tid)
+		{
+			$sql_array['tid'] = (int)$tid;
+			$multiple_sql_array[] = $sql_array;
+		}
+
+		$db->insert_query_multiple("moderatorlog", $multiple_sql_array);
+	}
+	else
+	{
+		$db->insert_query("moderatorlog", $sql_array);
+	}
 }
 
 /**
@@ -4689,40 +4737,84 @@ function nice_time($stamp, $options=array())
 	$stamp %= $msecs;
 	$seconds = $stamp;
 
-	if($years == 1)
+	// Prevent gross over accuracy ($options parameter will override these)
+	if($years > 0)
 	{
-		$nicetime['years'] = "1".$lang_year;
+		$options = array_merge(array(
+			'days' => false,
+			'hours' => false,
+			'minutes' => false,
+			'seconds' => false
+		), $options);
 	}
-	else if($years > 1)
+	elseif($months > 0)
 	{
-		$nicetime['years'] = $years.$lang_years;
+		$options = array_merge(array(
+			'hours' => false,
+			'minutes' => false,
+			'seconds' => false
+		), $options);
+	}
+	elseif($weeks > 0)
+	{
+		$options = array_merge(array(
+			'minutes' => false,
+			'seconds' => false
+		), $options);
+	}
+	elseif($days > 0)
+	{
+		$options = array_merge(array(
+			'seconds' => false
+		), $options);
 	}
 
-	if($months == 1)
+	if(!isset($options['years']) || $options['years'] !== false)
 	{
-		$nicetime['months'] = "1".$lang_month;
-	}
-	else if($months > 1)
-	{
-		$nicetime['months'] = $months.$lang_months;
-	}
-
-	if($weeks == 1)
-	{
-		$nicetime['weeks'] = "1".$lang_week;
-	}
-	else if($weeks > 1)
-	{
-		$nicetime['weeks'] = $weeks.$lang_weeks;
+		if($years == 1)
+		{
+			$nicetime['years'] = "1".$lang_year;
+		}
+		else if($years > 1)
+		{
+			$nicetime['years'] = $years.$lang_years;
+		}
 	}
 
-	if($days == 1)
+	if(!isset($options['months']) || $options['months'] !== false)
 	{
-		$nicetime['days'] = "1".$lang_day;
+		if($months == 1)
+		{
+			$nicetime['months'] = "1".$lang_month;
+		}
+		else if($months > 1)
+		{
+			$nicetime['months'] = $months.$lang_months;
+		}
 	}
-	else if($days > 1)
+
+	if(!isset($options['weeks']) || $options['weeks'] !== false)
 	{
-		$nicetime['days'] = $days.$lang_days;
+		if($weeks == 1)
+		{
+			$nicetime['weeks'] = "1".$lang_week;
+		}
+		else if($weeks > 1)
+		{
+			$nicetime['weeks'] = $weeks.$lang_weeks;
+		}
+	}
+
+	if(!isset($options['days']) || $options['days'] !== false)
+	{
+		if($days == 1)
+		{
+			$nicetime['days'] = "1".$lang_day;
+		}
+		else if($days > 1)
+		{
+			$nicetime['days'] = $days.$lang_days;
+		}
 	}
 
 	if(!isset($options['hours']) || $options['hours'] !== false)
@@ -5683,8 +5775,8 @@ function my_strtoupper($string)
 function unhtmlentities($string)
 {
 	// Replace numeric entities
-	$string = preg_replace_callback('~&#x([0-9a-f]+);~i', create_function('$matches', 'return unichr(hexdec($matches[1]));'), $string);
-	$string = preg_replace_callback('~&#([0-9]+);~', create_function('$matches', 'return unichr($matches[1]);'), $string);
+	$string = preg_replace_callback('~&#x([0-9a-f]+);~i', 'unichr_callback1', $string);
+	$string = preg_replace_callback('~&#([0-9]+);~', 'unichr_callback2', $string);
 
 	// Replace literal entities
 	$trans_tbl = get_html_translation_table(HTML_ENTITIES);
@@ -5724,6 +5816,28 @@ function unichr($c)
 	{
 		return false;
 	}
+}
+
+/**
+ * Returns any ascii to it's character (utf-8 safe).
+ *
+ * @param array $matches Matches.
+ * @return string|bool The characterized ascii. False on failure
+ */
+function unichr_callback1($matches)
+{
+	return unichr(hexdec($matches[1]));
+}
+
+/**
+ * Returns any ascii to it's character (utf-8 safe).
+ *
+ * @param array $matches Matches.
+ * @return string|bool The characterized ascii. False on failure
+ */
+function unichr_callback2($matches)
+{
+	return unichr($matches[1]);
 }
 
 /**
@@ -5797,7 +5911,7 @@ function build_profile_link($username="", $uid=0, $target="", $onclick="")
 	if(!$username && $uid == 0)
 	{
 		// Return Guest phrase for no UID, no guest nickname
-		return $lang->guest;
+		return htmlspecialchars_uni($lang->guest);
 	}
 	elseif($uid == 0)
 	{
@@ -6355,22 +6469,12 @@ function rebuild_settings()
 {
 	global $db, $mybb;
 
-	if(!file_exists(MYBB_ROOT."inc/settings.php"))
-	{
-		$mode = "x";
-	}
-	else
-	{
-		$mode = "w";
-	}
+	$query = $db->simple_select("settings", "value, name", "", array(
+		'order_by' => 'title',
+		'order_dir' => 'ASC',
+	));
 
-	$options = array(
-		"order_by" => "title",
-		"order_dir" => "ASC"
-	);
-	$query = $db->simple_select("settings", "value, name", "", $options);
-
-	$settings = null;
+	$settings = '';
 	while($setting = $db->fetch_array($query))
 	{
 		$mybb->settings[$setting['name']] = $setting['value'];
@@ -6379,9 +6483,8 @@ function rebuild_settings()
 	}
 
 	$settings = "<"."?php\n/*********************************\ \n  DO NOT EDIT THIS FILE, PLEASE USE\n  THE SETTINGS EDITOR\n\*********************************/\n\n$settings\n";
-	$file = @fopen(MYBB_ROOT."inc/settings.php", $mode);
-	@fwrite($file, $settings);
-	@fclose($file);
+
+	file_put_contents(MYBB_ROOT.'inc/settings.php', $settings, LOCK_EX);
 
 	$GLOBALS['settings'] = &$mybb->settings;
 }
@@ -6476,7 +6579,7 @@ function build_highlight_array($terms)
 
 	// Sort the word array by length. Largest terms go first and work their way down to the smallest term.
 	// This resolves problems like "test tes" where "tes" will be highlighted first, then "test" can't be highlighted because of the changed html
-	usort($words, create_function('$a,$b', 'return strlen($b) - strlen($a);'));
+	usort($words, 'build_highlight_array_sort');
 
 	// Loop through our words to build the PREG compatible strings
 	foreach($words as $word)
@@ -6498,6 +6601,18 @@ function build_highlight_array($terms)
 	}
 
 	return $highlight_cache;
+}
+
+/**
+ * Sort the word array by length. Largest terms go first and work their way down to the smallest term.
+ *
+ * @param string $a First word.
+ * @param string $b Second word.
+ * @return integer Result of comparison function.
+ */
+function build_highlight_array_sort($a, $b)
+{
+	return strlen($b) - strlen($a);
 }
 
 /**
@@ -8618,10 +8733,10 @@ function my_validate_url($url, $relative_path=false, $allow_local=false)
 
 /**
  * Strip html tags from string, also removes <script> and <style> contents.
- * 
+ *
  * @param  string $string         String to stripe
  * @param  string $allowable_tags Allowed html tags
- * 
+ *
  * @return string                 Striped string
  */
 function my_strip_tags($string, $allowable_tags = '')

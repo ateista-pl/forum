@@ -132,8 +132,10 @@ $l['no_subscribe_notification'] = "Subscribe without receiving any notification 
 $l['instant_email_subscribe'] = "Subscribe and receive email notification of new replies";
 $l['instant_pm_subscribe'] = "Subscribe and receive PM notification of new replies";
 
-$l['today'] = "<span title=\"{1}\">Today</span>";
-$l['yesterday'] = "<span title=\"{1}\">Yesterday</span>";
+$l['today_rel'] = "<span title=\"{1}\">Today</span>";
+$l['yesterday_rel'] = "<span title=\"{1}\">Yesterday</span>";
+$l['today'] = "Today";
+$l['yesterday'] = "Yesterday";
 $l['error'] = "Board Message";
 
 $l['multipage_pages'] = "Pages ({1}):";
@@ -568,6 +570,8 @@ $l['select2_searching'] = "Searching…";
 
 $l['stopforumspam_error_decoding'] = 'Error decoding data from StopForumSpam.com.';
 $l['stopforumspam_error_retrieving'] = 'Error retrieving data from StopForumSpam.com.';
+$l['stopforumspam_invalid_email'] = 'Invalid email address whilst checking against the StopForumSpam.com API.';
+$l['stopforumspam_invalid_ip_address'] = 'Invalid IP address whilst checking against the StopForumSpam.com API.';
 
 $l['sfs_error_username'] = 'username';
 $l['sfs_error_ip'] = 'IP';
